@@ -18,7 +18,7 @@ import {
     Poppins_400Regular,
     Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 
 // Get the width and height of the screen
 const { width, height } = Dimensions.get("window");
@@ -54,9 +54,6 @@ function Slide({ item }: { item: SlideItem }) {
 }
 
 export default function Index() {
-    // Get the navigation object
-    const navigation = useNavigation();
-
     // currentSlideIndex state to keep track of the current slide
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
@@ -68,6 +65,10 @@ export default function Index() {
         Poppins_400Regular,
         Poppins_600SemiBold,
     });
+
+    if (!fontsLoaded) {
+        return null;
+    }
 
     // Function that updates the indicator based on the current slide
     const updateCurrentSlideIndex = (
@@ -142,11 +143,16 @@ export default function Index() {
                 <Button
                     text="Get Started"
                     onPress={() => {
-                        navigation.navigate("register" as never);
+                        router.push("/register");
                     }}
+                    style={{ width: "80%" }}
                 />
             ) : (
-                <Button text="Next" onPress={goNextSlide} />
+                <Button
+                    text="Next"
+                    onPress={goNextSlide}
+                    style={{ width: "80%" }}
+                />
             )}
         </SafeAreaView>
     );
@@ -157,7 +163,7 @@ const styles = StyleSheet.create({
         fontFamily: "Poppins_600SemiBold",
         color: "#8F659A",
         textAlign: "center",
-        fontSize: 20,
+        fontSize: 24,
         width: "100%",
     },
     subheading: {

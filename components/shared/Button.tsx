@@ -5,16 +5,22 @@ import { Poppins_700Bold } from "@expo-google-fonts/poppins";
 export default function Button({
     text,
     onPress,
+    style,
 }: {
     text: string;
     onPress: () => void;
+    style?: any;
 }) {
     const [fontsLoaded] = useFonts({
         Poppins_700Bold,
     });
 
+    if (!fontsLoaded) {
+        return null;
+    }
+
     return (
-        <TouchableOpacity onPress={onPress} style={styles.button}>
+        <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
             <Text style={styles.text}>{text}</Text>
         </TouchableOpacity>
     );
@@ -28,7 +34,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 25,
         borderRadius: 15,
-        width: "80%",
+        width: "100%",
     },
     text: {
         color: "white",
