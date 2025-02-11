@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import React, { useState } from "react";
 import { useFonts } from "expo-font";
 import { Link } from "expo-router";
@@ -71,7 +71,15 @@ const register = () => {
                         placeholder="Re-enter your password"
                     />
                 </View>
-                <Button text="Register" onPress={() => {}} />
+                <Button
+                    text="Register"
+                    onPress={() => {
+                        Alert.alert(
+                            "Register",
+                            `Name: ${form.fullName}, Email: ${form.email}, Password: ${form.password}, Confirm Password: ${form.confirmPassword}`
+                        );
+                    }}
+                />
                 <Text
                     style={{
                         textAlign: "center",

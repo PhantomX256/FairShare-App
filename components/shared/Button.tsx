@@ -1,15 +1,23 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+} from "react-native";
 import { useFonts } from "expo-font";
 import { Poppins_700Bold } from "@expo-google-fonts/poppins";
+import Loader from "./Loader";
 
 export default function Button({
     text,
     onPress,
     style,
+    isLoading,
 }: {
     text: string;
     onPress: () => void;
     style?: any;
+    isLoading?: boolean;
 }) {
     const [fontsLoaded] = useFonts({
         Poppins_700Bold,
@@ -20,8 +28,16 @@ export default function Button({
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
-            <Text style={styles.text}>{text}</Text>
+        <TouchableOpacity
+            onPress={onPress}
+            style={[styles.button, style]}
+            disabled={isLoading}
+        >
+            {isLoading ? (
+                <Loader height={20} color="white" />
+            ) : (
+                <Text style={styles.text}>{text}</Text>
+            )}
         </TouchableOpacity>
     );
 }
