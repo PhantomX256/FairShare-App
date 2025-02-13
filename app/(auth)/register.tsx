@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import React, { useState } from "react";
 import { useFonts } from "expo-font";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -11,9 +11,14 @@ import FormField from "../../components/shared/FormField";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../components/shared/Button";
 import { useToast } from "@/components/contexts/ToastContext";
+import { signUp } from "@/lib/firebase";
 
 const register = () => {
   const { showToast } = useToast();
+
+  const [loading, isLoading] = useState(false);
+
+  const router = useRouter();
 
   // Load the Poppins font
   const [fontsLoaded] = useFonts({
@@ -34,6 +39,23 @@ const register = () => {
   if (!fontsLoaded) {
     return null;
   }
+
+  const submit = async () => {
+    try {
+      isLoading(true);
+      const user = await signUp(
+        form.fullName,
+        form.email,
+        form.password,
+        form.confirmPassword
+      );
+      if (user) router.replace("/home");
+    } catch (error: any) {
+      showToast(error.message, "error");
+    } finally {
+      isLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -72,16 +94,7 @@ const register = () => {
             placeholder="Re-enter your password"
           />
         </View>
-        <Button
-          text="Register"
-          onPress={() => {
-            // Alert.alert(
-            //     "Register",
-            //     `Name: ${form.fullName}, Email: ${form.email}, Password: ${form.password}, Confirm Password: ${form.confirmPassword}`
-            // );
-            showToast("Button Clicked", "info");
-          }}
-        />
+        <Button text="Register" onPress={submit} isLoading={loading} />
         <Text
           style={{
             textAlign: "center",

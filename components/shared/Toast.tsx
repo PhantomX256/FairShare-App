@@ -50,7 +50,7 @@ const Toast: React.FC<ToastProps> = ({ toast }) => {
       });
     } else {
       // Slide back up
-      translateY.value = withTiming(-100, {
+      translateY.value = withTiming(-150, {
         duration: 300,
         easing: Easing.in(Easing.ease),
       });
