@@ -1,12 +1,14 @@
+import { useToast } from "@/components/contexts/ToastContext";
 import Button from "@/components/shared/Button";
 import FormField from "@/components/shared/FormField";
+import { signIn } from "@/lib/firebase";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
 import { useFonts } from "expo-font";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Text } from "react-native";
@@ -15,11 +17,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const login = () => {
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
   const [fontsloaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  const { showToast } = useToast();
 
   if (!fontsloaded) {
     return null;
@@ -29,6 +35,18 @@ const login = () => {
     email: "",
     password: "",
   });
+
+  const submit = async () => {
+    try {
+      setLoading(true);
+      const user = await signIn(form.email, form.password);
+      if (user) router.replace("/home");
+    } catch (error: any) {
+      showToast(error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,13 +66,7 @@ const login = () => {
             placeholder="Enter your password"
           />
         </View>
-        <Button
-          text="Login"
-          onPress={() => {
-            Alert.alert("Login", form.email + " " + form.password);
-          }}
-          isLoading={loading}
-        />
+        <Button text="Login" onPress={submit} isLoading={loading} />
         <Text
           style={{
             textAlign: "center",
