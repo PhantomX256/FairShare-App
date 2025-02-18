@@ -11,9 +11,7 @@ type ToastContextType = {
 };
 
 // Create a new context for the Toast component
-export const ToastContext = createContext<ToastContextType | undefined>(
-  undefined
-);
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 // Define the props for the ToastProvider component
 type ToastProviderProps = {

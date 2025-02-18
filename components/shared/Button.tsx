@@ -1,13 +1,12 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useFonts } from "expo-font";
 import { Poppins_700Bold } from "@expo-google-fonts/poppins";
 import Loader from "./Loader";
 
+/**
+ * Button component that displays a text button with optional loading state.
+ *
+ */
 export default function Button({
   text,
   onPress,
@@ -19,10 +18,12 @@ export default function Button({
   style?: any;
   isLoading?: boolean;
 }) {
+  // Load the required fonts
   const [fontsLoaded] = useFonts({
     Poppins_700Bold,
   });
 
+  // If the fonts are not loaded, return null
   if (!fontsLoaded) {
     return null;
   }
