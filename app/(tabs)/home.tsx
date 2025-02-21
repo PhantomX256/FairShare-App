@@ -1,23 +1,29 @@
 import Button from "@/components/shared/Button";
-import { auth } from "@/FirebaseConfig";
-import { signOut } from "firebase/auth";
-import { View, Text, Alert } from "react-native";
+import { useLogout } from "@/lib/hooks/authHooks";
+import { Text, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const home = () => {
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
-  };
+  const { loading, handleLogout } = useLogout();
 
   return (
-    <View>
+    <SafeAreaView style={styles.container}>
       <Text>Home</Text>
-      <Button text="Logout" onPress={handleLogout} />
-    </View>
+      <Button text="Logout" isLoading={loading} onPress={handleLogout} />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  text: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+});
 
 export default home;

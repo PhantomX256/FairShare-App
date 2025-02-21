@@ -2,12 +2,14 @@ import { auth, db } from "@/FirebaseConfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import {
   validateSignInCredentials,
   validateSignUpCredentials,
 } from "./formValidation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { Alert } from "react-native";
 
 /**
  * CustomError is a specialized error class that extends the built-in Error class.
@@ -58,7 +60,7 @@ export const signIn = async (email: string, password: string) => {
 
       // General errors
     } else {
-      throw new Error(error.message);
+      throw new Error("An unexpected error occurred.");
     }
   }
 };
@@ -102,18 +104,10 @@ export const signUp = async (
     if (
       error.code === "ERR_EMPTY_FIELDS" ||
       error.code === "ERR_SHORT_PASSWORD" ||
-      error.code === "ERR_PASSWORD_MISMATCH"
+      error.code === "ERR_PASSWORD_MISMATCH" ||
+      error.code === "ERR_INVALID_EMAIL"
     ) {
       throw new Error(error.message);
-
-      // If the email is invalid
-    } else if (
-      error.code === "ERR_INVALID_EMAIL" ||
-      error.code === "auth/invalid-email"
-    ) {
-      throw new Error("Invalid Email Address");
-
-      // If the email is already in use
     } else if (error.code === "auth/email-already-in-use") {
       throw new Error("Email already in use.");
 
@@ -121,6 +115,14 @@ export const signUp = async (
     } else {
       throw new Error("Unexpected error occurred");
     }
+  }
+};
+
+export const logout = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    throw new Error("Failed to log out.");
   }
 };
 

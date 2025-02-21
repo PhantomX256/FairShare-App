@@ -23,19 +23,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
 
   return (
     <View>
-      <FormField
-        label="Email"
-        value={form.email}
-        handleChange={(e) => setForm({ ...form, email: e })}
-        placeholder="Enter your email"
-        keyboardType="email-address"
-      />
-      <FormField
-        label="Password"
-        value={form.password}
-        handleChange={(e) => setForm({ ...form, password: e })}
-        placeholder="Enter your password"
-      />
+      <View style={{ marginBottom: 20 }}>
+        <FormField
+          label="Email"
+          value={form.email}
+          handleChange={(e) => setForm({ ...form, email: e })}
+          placeholder="Enter your email"
+          keyboardType="email-address"
+        />
+        <FormField
+          label="Password"
+          value={form.password}
+          handleChange={(e) => setForm({ ...form, password: e })}
+          placeholder="Enter your password"
+        />
+      </View>
       <Button text="Login" onPress={handleSubmit} isLoading={isLoading} />
       <Text
         style={{

@@ -7,6 +7,9 @@ import {
   useContext,
 } from "react";
 import { useToast } from "./ToastContext";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "@/FirebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 // Define the context type for the Auth component
 interface AuthContextType {
@@ -25,57 +28,53 @@ interface AuthProviderProps {
 // Create a new context for the Auth component
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// ... (existing imports and interfaces)
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  // Set a state variable to keep track of the user's login status
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Set a state variable to keep track of the user's information
   const [user, setUser] = useState<any>(null);
-
-  // Set a state variable to keep track of whether the user's information is being loaded
   const [isLoading, setIsLoading] = useState(true);
-
-  // Use the useToast hook to access the showToast function
   const { showToast } = useToast();
 
-  // Use the useEffect hook to get the current user when the component mounts
   useEffect(() => {
-    // Define an async function to get the current user
-    const getUser = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        const user = await getCurrentUser();
-
-        if (user) {
-          setUser(user);
-          setIsLoggedIn(true);
+        if (firebaseUser) {
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUser(userDoc.data());
+            setIsLoggedIn(true);
+          } else {
+            showToast("User document not found.");
+            setIsLoggedIn(false);
+            setUser(null);
+          }
         } else {
           setIsLoggedIn(false);
           setUser(null);
         }
       } catch (error: any) {
         showToast(error.message);
+        setIsLoggedIn(false);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
-    };
+    });
 
-    getUser();
+    return () => unsubscribe(); // Cleanup subscription on unmount
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{
-        isLoggedIn,
-        setIsLoggedIn,
-        user,
-        setUser,
-        isLoading,
-      }}
+      value={{ isLoggedIn, setIsLoggedIn, user, setUser, isLoading }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
+// Remove or adjust the standalone getCurrentUser function if no longer needed
 
 /**
  * Custom hook to access the Auth context.
