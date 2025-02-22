@@ -9,7 +9,6 @@ const home = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text>Home</Text>
-      <Button text="Logout" isLoading={loading} onPress={handleLogout} />
     </SafeAreaView>
   );
 };
