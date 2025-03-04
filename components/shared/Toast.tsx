@@ -44,7 +44,7 @@ const Toast: React.FC<ToastProps> = ({ toast }) => {
     // If the toast is visible, slide down, otherwise slide back up
     if (toast.visible) {
       // Slide down
-      translateY.value = withTiming(50, {
+      translateY.value = withTiming(30, {
         duration: 300,
         easing: Easing.out(Easing.ease),
       });

@@ -12,11 +12,13 @@ export default function Button({
   onPress,
   style,
   isLoading,
+  disabled,
 }: {
   text: string;
   onPress: () => void;
   style?: any;
   isLoading?: boolean;
+  disabled?: boolean;
 }) {
   // Load the required fonts
   const [fontsLoaded] = useFonts({
@@ -31,8 +33,8 @@ export default function Button({
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.button, style]}
-      disabled={isLoading}
+      style={[styles.button, style, (disabled || isLoading) && styles.disabled]}
+      disabled={isLoading || disabled}
     >
       {isLoading ? (
         <Loader height={30} color="white" />
@@ -52,6 +54,9 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 15,
     width: "100%",
+  },
+  disabled: {
+    opacity: 0.5,
   },
   text: {
     color: "white",

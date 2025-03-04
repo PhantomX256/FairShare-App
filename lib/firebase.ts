@@ -88,6 +88,7 @@ export const signUp = async (
 
     // Create a user data object
     const userData = {
+      id: userId,
       fullName,
       email,
       friendIds: [],
@@ -150,8 +151,9 @@ export const getCurrentUser = async () => {
 
     // Check if the user document exists
     if (userDoc.exists()) {
-      // Return the user data
-      return userDoc.data();
+      // Return the user data with the id
+      const userData = userDoc.data();
+      return { ...userData, id: userId };
     } else {
       // If the user document does not exist throw an error
       throw new Error("User not found.");

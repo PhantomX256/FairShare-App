@@ -1,4 +1,10 @@
-import { Text, StyleSheet, ScrollView } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import React from "react";
 import { useFonts } from "expo-font";
 import {
@@ -31,16 +37,18 @@ const register = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={{
-          width: "100%",
-          flex: 1,
-          padding: 20,
-        }}
-      >
-        <Text style={styles.heading}>Register</Text>
-        <RegisterForm onSubmit={handleSignUp} isLoading={loading} />
-      </ScrollView>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
+        <ScrollView
+          style={{
+            width: "100%",
+            flex: 1,
+            padding: 20,
+          }}
+        >
+          <Text style={styles.heading}>Register</Text>
+          <RegisterForm onSubmit={handleSignUp} isLoading={loading} />
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };

@@ -1,6 +1,13 @@
 // screens/login.tsx
 import { useFonts } from "expo-font";
-import { ScrollView, StyleSheet, SafeAreaView, Text } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -23,12 +30,14 @@ const Login = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollview}>
-        <Text style={styles.heading}>Login</Text>
-        <LoginForm onSubmit={handleLogin} isLoading={loading} />
-      </ScrollView>
-    </SafeAreaView>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scrollview}>
+          <Text style={styles.heading}>Login</Text>
+          <LoginForm onSubmit={handleLogin} isLoading={loading} />
+        </ScrollView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 

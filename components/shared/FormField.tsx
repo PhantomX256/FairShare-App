@@ -17,11 +17,13 @@ import { colors } from "@/styles/global";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 interface FormFieldProps {
-  label: string;
+  label?: string;
   value: string;
   handleChange: (text: string) => void;
-  placeholder: string;
+  placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoCorrect?: boolean;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -30,6 +32,8 @@ const FormField: React.FC<FormFieldProps> = ({
   handleChange,
   placeholder,
   keyboardType,
+  autoCapitalize = "sentences",
+  autoCorrect = true,
 }) => {
   const [showPass, setShowPass] = React.useState(false);
 
@@ -57,6 +61,8 @@ const FormField: React.FC<FormFieldProps> = ({
             (label === "Password" || label === "Confirm Password") && !showPass
           }
           keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
         />
         {(label === "Password" || label === "Confirm Password") && (
           <TouchableOpacity onPress={() => setShowPass(!showPass)}>
