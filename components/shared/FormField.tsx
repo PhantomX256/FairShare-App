@@ -85,12 +85,10 @@ const styles = StyleSheet.create({
   },
   inputContianer: {
     backgroundColor: colors.offwhite,
-    height: 50,
     borderRadius: 10,
     marginTop: 5,
     marginBottom: 15,
     width: "100%",
-    padding: 5,
     paddingHorizontal: 15,
     paddingVertical: 10,
     display: "flex",
