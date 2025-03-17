@@ -7,9 +7,8 @@ import {
 import {
   validateSignInCredentials,
   validateSignUpCredentials,
-} from "./formValidation";
+} from "../formValidation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { Alert } from "react-native";
 
 /**
  * CustomError is a specialized error class that extends the built-in Error class.
@@ -119,6 +118,13 @@ export const signUp = async (
   }
 };
 
+/**
+ * Logs out the currently authenticated user from Firebase.
+ * 
+ * This function attempts to sign out the user from the Firebase authentication system.
+ * If the operation fails, it throws an error with a generic message.
+ * 
+ */
 export const logout = async () => {
   try {
     await signOut(auth);

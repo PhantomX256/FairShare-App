@@ -8,7 +8,7 @@ import {
   removeFriend,
   respondToFriendRequest,
   sendFriendRequest,
-} from "../friendService";
+} from "../firebase/friendService";
 
 /**
  * Custom hook for managing friend operations and requests

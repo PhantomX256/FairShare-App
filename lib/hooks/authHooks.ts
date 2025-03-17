@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/components/contexts/ToastContext";
 import { useAuth } from "@/components/contexts/AuthContext";
 import { useRouter } from "expo-router";
-import { logout, signIn, signUp } from "@/lib/firebase";
+import { logout, signIn, signUp } from "@/lib/firebase/firebase";
 
 /**
  * Custom hook for handling user login.
