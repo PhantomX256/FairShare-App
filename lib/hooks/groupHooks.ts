@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createGroup, getGroups } from "../firebase/groupService";
+import { useToast } from "@/components/contexts/ToastContext";
 
 /**
  * Represents the data structure for a group in the application.
@@ -23,6 +24,8 @@ export const useGroupService = () => {
   const [error, setError] = useState(null);
   // State for tracking loading status during async operations
   const [isLoading, setIsLoading] = useState(false);
+  // get show toast funciton from toast context
+  const { showToast } = useToast();
 
   // Function to create a new group with the provided data
   const handleCreateGroup = async (groupData: GroupData) => {
@@ -36,6 +39,8 @@ export const useGroupService = () => {
     } catch (error: any) {
       // Store the error message if an exception occurs
       setError(error.message);
+      // Show toast message with error
+      showToast(error.message, "error");
     } finally {
       // Reset loading state when operation completes (whether successful or not)
       setIsLoading(false);
