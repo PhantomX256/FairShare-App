@@ -16,9 +16,23 @@ interface GroupData {
   groupName: string;
   users?: string[];
   guests?: {
-    name: string;
+    id: string;
+    fullName: string;
   }[];
   description?: string;
+}
+
+export interface Group {
+  id: string;
+  groupName: string;
+  users?: string[];
+  guests?: {
+    id: string;
+    fullName: string;
+  }[];
+  description?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 /**
@@ -76,7 +90,7 @@ export const createGroup = async (groupData: GroupData) => {
  * Retrieves all groups that the currently authenticated user is a member of.
  *
  */
-export const getGroups = async () => {
+export const getGroups = async (): Promise<Group[]> => {
   try {
     // Get the current user's ID from auth session
     const currentUserId = auth.currentUser?.uid;
@@ -97,7 +111,11 @@ export const getGroups = async () => {
     const groups = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    }));
+    })) as (GroupData & {
+      id: string;
+      createdAt: Timestamp;
+      updatedAt: Timestamp;
+    })[];
 
     // return the groups
     return groups;

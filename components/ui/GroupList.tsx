@@ -8,15 +8,7 @@ import {
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Loader from "../shared/Loader";
-
-// Define the Group interface
-interface Group {
-  id: string;
-  groupName: string;
-  description?: string;
-  users?: string[];
-  guests?: { name: string }[];
-}
+import { Group } from "@/lib/firebase/groupService";
 
 interface GroupListProps {
   groups: Group[];

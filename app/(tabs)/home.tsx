@@ -1,4 +1,3 @@
-import Button from "@/components/shared/Button";
 import { useGroupService } from "@/lib/hooks/groupHooks";
 import {
   Poppins_300Light,
@@ -6,35 +5,26 @@ import {
 } from "@expo-google-fonts/poppins";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
-import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GroupList from "@/components/ui/GroupList";
-
-// Define a type for our group data
-interface Group {
-  id: string;
-  groupName: string;
-  description?: string;
-  users?: string[];
-  guests?: { name: string }[];
-}
+import { router } from "expo-router";
+import { Group } from "@/lib/firebase/groupService";
 
 const home = () => {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_300Light,
   });
-  const [groups, setGroups] = useState<Group[]>([]);
-  const { handleGetGroups, isLoading } = useGroupService();
+  const { loadGroups, isLoading, groups } = useGroupService();
 
   useEffect(() => {
     const fetchGroups = async () => {
-      const result = await handleGetGroups();
-      setGroups(result);
+      await loadGroups();
     };
 
     fetchGroups();
-  }, [setGroups]);
+  }, []);
 
   const handleGroupPress = (group: Group) => {
     // Handle group selection - navigate to group details or perform any action
@@ -53,9 +43,12 @@ const home = () => {
 
       <View style={styles.groupHeaderContainer}>
         <Text style={styles.groupHeaderText}>Your Groups</Text>
-        <TouchableOpacity>
-          <Text style={styles.createGroupText}>Create a group +</Text>
-        </TouchableOpacity>
+        <Text
+          onPress={() => router.push("../creategroup")}
+          style={styles.createGroupText}
+        >
+          Create a group +
+        </Text>
       </View>
 
       {/* Groups List Section */}

@@ -16,15 +16,19 @@ interface Friend {
 }
 
 interface FriendListProps {
+  context: string;
   friends: Friend[];
   isLoading: boolean;
-  handleRemoveFriend: (id: string, name?: string) => void;
+  handleRemoveFriend?: (id: string, name?: string) => void;
+  handleAddMember?: (id: string, fullName: string) => void;
 }
 
 const FriendList = ({
+  context,
   friends,
   isLoading,
   handleRemoveFriend,
+  handleAddMember,
 }: FriendListProps) => {
   if (isLoading) {
     return (
@@ -54,12 +58,23 @@ const FriendList = ({
         </View>
         <Text style={styles.friendName}>{friend.fullName}</Text>
       </View>
-      <TouchableOpacity
-        onPress={() => handleRemoveFriend(friend.id, friend.fullName)}
-        style={styles.removeButton}
-      >
-        <Entypo name="cross" size={26} color="rgba(255, 0, 0, 0.5)" />
-      </TouchableOpacity>
+      {context === "addMember"
+        ? handleAddMember && (
+            <TouchableOpacity
+              onPress={() => handleAddMember(friend.id, friend.fullName)}
+              style={styles.removeButton}
+            >
+              <Entypo name="plus" size={26} color="rgba(0, 128, 0, 0.7)" />
+            </TouchableOpacity>
+          )
+        : handleRemoveFriend && (
+            <TouchableOpacity
+              onPress={() => handleRemoveFriend(friend.id, friend.fullName)}
+              style={styles.removeButton}
+            >
+              <Entypo name="cross" size={26} color="rgba(255, 0, 0, 0.5)" />
+            </TouchableOpacity>
+          )}
     </View>
   );
 

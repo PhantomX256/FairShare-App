@@ -8,6 +8,10 @@ export default function RootLayout() {
       <AuthProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" options={{ title: "Home" }} />
+          <Stack.Screen
+            name="creategroup"
+            options={{ title: "Create Group" }}
+          />
           <Stack.Screen name="(auth)" options={{ title: "Auth" }} />
           <Stack.Screen name="(tabs)" options={{ title: "Tabs" }} />
         </Stack>

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { createGroup, getGroups } from "../firebase/groupService";
+import { createGroup, getGroups, Group } from "../firebase/groupService";
 import { useToast } from "@/components/contexts/ToastContext";
+import { router } from "expo-router";
 
 /**
  * Represents the data structure for a group in the application.
@@ -8,9 +9,10 @@ import { useToast } from "@/components/contexts/ToastContext";
  */
 interface GroupData {
   groupName: string;
-  users?: string[];
+  users?: { id: string; fullName: string }[];
   guests?: {
-    name: string;
+    id: string;
+    fullName: string;
   }[];
   description?: string;
 }
@@ -20,10 +22,10 @@ interface GroupData {
  *
  */
 export const useGroupService = () => {
-  // State for storing any error that occurs during operations
-  const [error, setError] = useState(null);
   // State for tracking loading status during async operations
   const [isLoading, setIsLoading] = useState(false);
+  // State for holding all the groups the user is involved in
+  const [groups, setGroups] = useState<Group[]>([]);
   // get show toast funciton from toast context
   const { showToast } = useToast();
 
@@ -32,13 +34,27 @@ export const useGroupService = () => {
     try {
       // Set loading state to true before starting the operation
       setIsLoading(true);
-      // Clear any previous errors
-      setError(null);
+
+      // Process the group data to convert users to array of IDs
+      const processedGroupData = {
+        ...groupData,
+        users: groupData.users
+          ? groupData.users.map((user) => user.id)
+          : undefined,
+      };
+
       // Call the createGroup function from groupService to create the group in Firebase
-      await createGroup(groupData);
+      await createGroup(processedGroupData);
+
+      // Show the success toast message
+      showToast("Group created successfully", "success");
+
+      // Redirect the user to "/"
+      router.replace("/");
+
+      // Call the loadGroups function to update the groups
+      await loadGroups();
     } catch (error: any) {
-      // Store the error message if an exception occurs
-      setError(error.message);
       // Show toast message with error
       showToast(error.message, "error");
     } finally {
@@ -48,17 +64,20 @@ export const useGroupService = () => {
   };
 
   // Function to fetch all groups from the database
-  const handleGetGroups = async () => {
+  const loadGroups = async () => {
     try {
       // Set loading state to true before starting the operation
       setIsLoading(true);
-      // Clear any previous errors
-      setError(null);
+
       // Call the getGroups function from groupService to fetch groups from Firebase
-      return await getGroups();
+      const result = await getGroups();
+
+      // Update the groups state
+      setGroups(result);
     } catch (error: any) {
-      // Store the error message if an exception occurs
-      setError(error.message);
+      // Show toast message with error
+      showToast(error.message, "error");
+
       // Return empty result in case of error
       return [];
     } finally {
@@ -69,9 +88,9 @@ export const useGroupService = () => {
 
   // Return the hook's state and handler functions
   return {
-    error,
+    groups,
     isLoading,
-    handleCreateGroup, // Expose the create group function
-    handleGetGroups, // Expose the get groups function
+    handleCreateGroup,
+    loadGroups,
   };
 };
