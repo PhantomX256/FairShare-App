@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 
 interface LoaderProps {
-  height?: number;
+  height?: number | string;
   color?: string;
 }
 

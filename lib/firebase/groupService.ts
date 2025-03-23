@@ -2,6 +2,8 @@ import { auth, db } from "@/FirebaseConfig";
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
   Timestamp,
@@ -39,7 +41,7 @@ export interface Group {
  * Creates a new group in Firestore.
  *
  */
-export const createGroup = async (groupData: GroupData) => {
+export const createGroup = async (groupData: GroupData): Promise<Group> => {
   try {
     // Dereference users, guests and groupName from the parameter
     const { users = [], guests = [], groupName } = groupData;
@@ -81,7 +83,11 @@ export const createGroup = async (groupData: GroupData) => {
       updatedAt: now,
     };
   } catch (error) {
-    // If any error occurs throw a general error
+    // Rethrow the original error instead of a generic one
+    if (error instanceof Error) {
+      throw error;
+    }
+    // Fallback for non-Error objects
     throw new Error("Server error.");
   }
 };
@@ -94,9 +100,6 @@ export const getGroups = async (): Promise<Group[]> => {
   try {
     // Get the current user's ID from auth session
     const currentUserId = auth.currentUser?.uid;
-
-    // If no user ID is found that means the user isn't logged in
-    if (!currentUserId) throw new Error("You must be logged in.");
 
     // Create a reference to the groups collection
     const groupsRef = collection(db, "groups");
@@ -120,7 +123,39 @@ export const getGroups = async (): Promise<Group[]> => {
     // return the groups
     return groups;
   } catch (error) {
+    if (error instanceof Error) throw error;
     // If any error occurs throw generic error.
     throw new Error("Server error please try again later.");
+  }
+};
+
+/**
+ * Retrieves a group document from Firestore by its ID.
+ *
+ */
+export const getGroupById = async (id: string): Promise<Group> => {
+  try {
+    // Create a reference to the specific document
+    const docRef = doc(db, "groups", id);
+
+    // Get the document from the database
+    const docSnap = await getDoc(docRef);
+
+    // If the document doesn't exist that means the group doesn't exist
+    if (!docSnap.exists()) {
+      throw new Error("Group not found");
+    }
+
+    // Return the data
+    return {
+      id: docSnap.id,
+      ...docSnap.data(),
+    } as Group;
+  } catch (error) {
+    // If the error thrown is by the try block rethrow it
+    if (error instanceof Error) throw error;
+
+    // If the error thrown is by firebase then throw server error
+    throw new Error("Server Error");
   }
 };

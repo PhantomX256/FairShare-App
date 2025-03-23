@@ -4,32 +4,29 @@ import {
   Poppins_400Regular,
 } from "@expo-google-fonts/poppins";
 import { useFonts } from "expo-font";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Text, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GroupList from "@/components/ui/GroupList";
 import { router } from "expo-router";
 import { Group } from "@/lib/firebase/groupService";
+import { useGroupContext } from "@/components/contexts/GroupContext";
 
 const home = () => {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_300Light,
   });
-  const { loadGroups, isLoading, groups } = useGroupService();
-
-  useEffect(() => {
-    const fetchGroups = async () => {
-      await loadGroups();
-    };
-
-    fetchGroups();
-  }, []);
+  const { groups, isLoading, setCurrentGroup, fetchGroups } = useGroupContext();
 
   const handleGroupPress = (group: Group) => {
-    // Handle group selection - navigate to group details or perform any action
-    console.log("Group selected:", group.id);
+    setCurrentGroup(group);
+    router.push("/group");
   };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   if (!fontsLoaded) {
     return null;
@@ -91,8 +88,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 15,
+    marginTop: 40,
   },
   groupHeaderText: {
     fontFamily: "Poppins_400Regular",
@@ -107,7 +103,6 @@ const styles = StyleSheet.create({
   groupsContainer: {
     flex: 1,
     width: "100%",
-    marginTop: 5,
   },
 });
 

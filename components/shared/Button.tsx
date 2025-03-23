@@ -37,7 +37,7 @@ export default function Button({
       disabled={isLoading || disabled}
     >
       {isLoading ? (
-        <Loader height={30} color="white" />
+        <Loader height={25} color="white" />
       ) : (
         <Text style={styles.text}>{text}</Text>
       )}
