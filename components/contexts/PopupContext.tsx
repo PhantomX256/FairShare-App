@@ -35,8 +35,8 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
         setPopupContent,
       }}
     >
-      {children}
       <Popup visible={isPopupVisible}>{content}</Popup>
+      {children}
     </PopupContext.Provider>
   );
 };

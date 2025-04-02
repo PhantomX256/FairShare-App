@@ -5,14 +5,14 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import Loader from "../shared/Loader";
 import Entypo from "@expo/vector-icons/Entypo";
+import { usePopup } from "../contexts/PopupContext";
 
 interface Friend {
   fullName: string;
   id: string;
-  // Add other properties that a friend might have
 }
 
 interface FriendListProps {
@@ -23,6 +23,41 @@ interface FriendListProps {
   handleAddMember?: (id: string, fullName: string) => void;
 }
 
+interface RemoveFriendPopupProps {
+  friendName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const RemoveFriendPopup = ({
+  friendName,
+  onConfirm,
+  onCancel,
+}: RemoveFriendPopupProps) => {
+  return (
+    <View style={styles.popupContainer}>
+      <Text style={styles.popupTitle}>Remove Friend</Text>
+      <Text style={styles.popupMessage}>
+        Are you sure you want to remove {friendName} from your friends list?
+      </Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={onCancel}
+        >
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.confirmButton]}
+          onPress={onConfirm}
+        >
+          <Text style={styles.confirmButtonText}>Remove</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
 const FriendList = ({
   context,
   friends,
@@ -30,6 +65,27 @@ const FriendList = ({
   handleRemoveFriend,
   handleAddMember,
 }: FriendListProps) => {
+  const { showPopup, setPopupContent, hidePopup } = usePopup();
+
+  const showRemoveConfirmation = (friend: Friend) => {
+    setPopupContent(
+      <RemoveFriendPopup
+        friendName={friend.fullName}
+        onConfirm={() => {
+          if (handleRemoveFriend) {
+            handleRemoveFriend(friend.id, friend.fullName);
+          }
+          hidePopup();
+        }}
+        onCancel={() => {
+          hidePopup();
+        }}
+      />
+    );
+
+    showPopup();
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -69,7 +125,7 @@ const FriendList = ({
           )
         : handleRemoveFriend && (
             <TouchableOpacity
-              onPress={() => handleRemoveFriend(friend.id, friend.fullName)}
+              onPress={() => showRemoveConfirmation(friend)}
               style={styles.removeButton}
             >
               <Entypo name="cross" size={26} color="rgba(255, 0, 0, 0.5)" />
@@ -91,6 +147,57 @@ const FriendList = ({
 };
 
 const styles = StyleSheet.create({
+  popupContainer: {
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 12,
+    alignItems: "center",
+    width: "90%",
+  },
+  popupTitle: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 18,
+    color: "#42224A",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  popupMessage: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 10,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+  },
+  confirmButton: {
+    backgroundColor: "#42224A",
+  },
+  cancelButtonText: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 16,
+    color: "#42224A",
+  },
+  confirmButtonText: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 16,
+    color: "white",
+  },
   loadingContainer: {
     flex: 0.3,
     justifyContent: "center",

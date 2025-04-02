@@ -48,7 +48,7 @@ const FormField: React.FC<FormFieldProps> = ({
   }
 
   return (
-    <>
+    <View style={{ width: "100%" }}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputContianer}>
         <TextInput
@@ -74,7 +74,7 @@ const FormField: React.FC<FormFieldProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </>
+    </View>
   );
 };
 

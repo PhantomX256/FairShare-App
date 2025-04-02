@@ -11,23 +11,18 @@ const Popup = ({ visible, children }: PopupProps) => {
     return null;
   }
 
-  return (
-    <View style={styles.popupContainer}>
-      <View style={styles.popup}>{children}</View>
-    </View>
-  );
+  return <View style={styles.popupContainer}>{children}</View>;
 };
 
 const styles = StyleSheet.create({
   popupContainer: {
     height: "100%",
     width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup: {
-    backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    zIndex: 10,
   },
 });
 

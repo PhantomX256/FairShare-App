@@ -4,6 +4,7 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useGroupContext } from "@/components/contexts/GroupContext";
@@ -11,18 +12,29 @@ import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { useExpenseContext } from "@/components/contexts/ExpenseContext";
 import ExpenseList from "@/components/ui/ExpenseList";
 import { Expense } from "@/lib/firebase/expenseService";
+import AddExpense from "@/components/ui/AddExpense";
 
 const group = () => {
-  const { currentGroup } = useGroupContext();
+  // Destructure from GroupContext to get the current group, its members, and loading state
+  const { currentGroup, currentGroupMembers, isMemberLoading } =
+    useGroupContext();
+  // State hook to track which tab is active - 'expenses' or 'balances'
   const [activeTab, setActiveTab] = useState("expenses");
+  // State hook to control the visibility of the expense creation modal
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  // Destructure from ExpenseContext to get expenses data and related functions
   const { expenses, setCurrentExpense, isLoading, fetchExpenses } =
     useExpenseContext();
 
+  // Effect hook that runs whenever the currentGroup changes
   useEffect(() => {
+    // Fetch expenses for the current group
     fetchExpenses();
   }, [currentGroup]);
 
+  // Handler function for when an expense is selected
   const onPressExpense = (expense: Expense) => {
+    // Update the current expense in the expense context
     setCurrentExpense(expense);
   };
 
@@ -104,7 +116,12 @@ const group = () => {
       {/* Add expenses icon at the end */}
       {activeTab === "expenses" && (
         <View style={styles.addIconContainer}>
-          <AntDesign name="pluscircle" size={50} color="#EF8767" />
+          <AntDesign
+            name="pluscircle"
+            onPress={() => setIsModalVisible(true)}
+            size={50}
+            color="#EF8767"
+          />
           <Text
             style={{
               fontFamily: "Poppins_300Light",
@@ -115,6 +132,20 @@ const group = () => {
             Add Expense
           </Text>
         </View>
+      )}
+
+      {activeTab === "expenses" && currentGroup && (
+        <Modal
+          visible={isModalVisible}
+          onRequestClose={() => setIsModalVisible(false)}
+          animationType="slide"
+          presentationStyle="pageSheet"
+        >
+          <AddExpense
+            isMemberLoading={isMemberLoading}
+            groupMembers={currentGroupMembers}
+          />
+        </Modal>
       )}
     </SafeAreaView>
   );

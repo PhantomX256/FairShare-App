@@ -1,4 +1,3 @@
-import { getCurrentUser } from "@/lib/firebase";
 import {
   createContext,
   useState,
@@ -42,7 +41,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (firebaseUser) {
           const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
           if (userDoc.exists()) {
-            setUser(userDoc.data());
+            const userData = userDoc.data();
+            setUser({ id: userDoc.id, ...userData });
             setIsLoggedIn(true);
           } else {
             showToast("User document not found.");

@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { createGroup, getGroups, Group } from "../firebase/groupService";
+import {
+  createGroup,
+  getGroupMembers,
+  getGroups,
+  Group,
+} from "../firebase/groupService";
 import { useToast } from "@/components/contexts/ToastContext";
 import { router } from "expo-router";
+import { User } from "firebase/auth";
 
 /**
  * Represents the data structure for a group in the application.
@@ -24,8 +30,13 @@ interface GroupData {
 export const useGroupService = () => {
   // State for tracking loading status during async operations
   const [isLoading, setIsLoading] = useState(false);
+
+  // State for tracking group member loading
+  const [isMemberLoading, setIsMemberLoading] = useState(false);
+
   // State for holding all the groups the user is involved in
   const [groups, setGroups] = useState<Group[]>([]);
+
   // get show toast funciton from toast context
   const { showToast } = useToast();
 
@@ -86,11 +97,33 @@ export const useGroupService = () => {
     }
   };
 
+  // Function to load the members of a group based on user IDs
+  const loadGroupMembers = async (users: string[]) => {
+    try {
+      // Set member loading state to true before fetching data
+      setIsMemberLoading(true);
+
+      // Call the getGroupMembers function from groupService to fetch user details from Firebase
+      const result = await getGroupMembers(users);
+
+      // Return the fetched member details
+      return result;
+    } catch (error: any) {
+      // Show toast message with error if the operation fails
+      showToast(error.message, "error");
+    } finally {
+      // Reset member loading state when operation completes (whether successful or not)
+      setIsMemberLoading(false);
+    }
+  };
+
   // Return the hook's state and handler functions
   return {
     groups,
     isLoading,
     handleCreateGroup,
     loadGroups,
+    loadGroupMembers,
+    isMemberLoading,
   };
 };

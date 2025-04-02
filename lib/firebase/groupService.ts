@@ -3,6 +3,7 @@ import {
   addDoc,
   collection,
   doc,
+  documentId,
   getDoc,
   getDocs,
   query,
@@ -35,6 +36,12 @@ export interface Group {
   description?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
 }
 
 /**
@@ -157,5 +164,58 @@ export const getGroupById = async (id: string): Promise<Group> => {
 
     // If the error thrown is by firebase then throw server error
     throw new Error("Server Error");
+  }
+};
+
+/**
+ * Fetches user details for an array of user IDs
+ * Uses batched queries for efficiency with Firestore limits
+ */
+export const getGroupMembers = async (userIds: string[]): Promise<User[]> => {
+  try {
+    // Return empty array if no userIds provided
+    if (!userIds || userIds.length === 0) {
+      return [];
+    }
+
+    // Firestore has a limit of 10 items in an "in" query
+    // Break into batches of 10 for efficiency
+    const batchSize = 10;
+    const batches = [];
+
+    // Create batches of user IDs
+    for (let i = 0; i < userIds.length; i += batchSize) {
+      batches.push(userIds.slice(i, i + batchSize));
+    }
+
+    // Process each batch with a separate query
+    const batchPromises = batches.map(async (batch) => {
+      // Create a reference to the users collection
+      const usersRef = collection(db, "users");
+
+      // Create a query for this batch of user IDs
+      const q = query(usersRef, where(documentId(), "in", batch));
+
+      // Execute the query
+      const querySnapshot = await getDocs(q);
+
+      // Return an array of user objects from this batch
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as User[];
+    });
+
+    // Wait for all batch queries to complete
+    const userBatches = await Promise.all(batchPromises);
+
+    // Flatten the batches into a single array
+    return userBatches.flat();
+  } catch (error) {
+    console.error("Error fetching group members:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Failed to fetch group members");
   }
 };
