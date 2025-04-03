@@ -39,7 +39,7 @@ const group = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Group settings icon */}
       <Ionicons
         style={styles.settingsIcon}
@@ -147,7 +147,7 @@ const group = () => {
           />
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     padding: 30,
+    paddingVertical: 50,
     backgroundColor: "white",
     display: "flex",
     flexDirection: "column",
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   settingsIcon: {
     position: "absolute",
     right: 30,
-    top: 30,
+    top: 50,
     opacity: 0.4,
   },
   heading: {
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    maxWidth: 65,
+    maxWidth: "25%",
     gap: 10,
   },
   tabContainer: {

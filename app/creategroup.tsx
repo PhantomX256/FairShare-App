@@ -111,7 +111,7 @@ const CreateGroup = () => {
       style={{ height: "100%", width: "100%" }}
       onPress={() => Keyboard.dismiss}
     >
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View>
           {/* Heading for the screen */}
           <Text style={styles.heading}>Create Group</Text>
@@ -175,7 +175,7 @@ const CreateGroup = () => {
             />
           </ToastProvider>
         </Modal>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };
@@ -183,10 +183,9 @@ const CreateGroup = () => {
 // Styles for the component
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "white",
-    paddingVertical: 30,
-    paddingHorizontal: 30,
+    padding: 30,
+    flex: 1,
     justifyContent: "space-between",
   },
   heading: {
