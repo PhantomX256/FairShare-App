@@ -92,7 +92,7 @@ const PaidByModal = ({
 const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
   const [title, setTitle] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("0.00");
   const [paidBy, setPaidBy] = useState<User | null>(null);
   const { user } = useAuth();
 
@@ -114,7 +114,7 @@ const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.container}>
         <Modal
           visible={isModalVisible}
           onRequestClose={() => setIsModalVisible(false)}
@@ -177,10 +177,13 @@ const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
               </View>
             </TouchableWithoutFeedback>
           </View>
-          <ExpenseMemberList members={groupMembers} />
+          <ExpenseMemberList
+            members={groupMembers}
+            totalAmount={parseFloat(amount)}
+          />
           <Button text="Add" onPress={() => {}} style={{ width: "100vw" }} />
         </View>
-      </ScrollView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };
