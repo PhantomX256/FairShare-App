@@ -10,7 +10,6 @@ import React, { useEffect, useState } from "react";
 import { User } from "@/lib/firebase/groupService";
 import { expenseMemberListTabs } from "@/lib/constants";
 import { colors } from "@/styles/global";
-import Button from "../shared/Button";
 
 interface ExpenseMemberListProps {
   members: User[];
@@ -20,8 +19,10 @@ interface ExpenseMemberListProps {
 interface MemberShare {
   id: string;
   name: string;
-  amount: number;
-  shares: number;
+  equalAmount?: number;
+  shares?: number;
+  unequalAmount?: number;
+  edited?: boolean;
 }
 
 const ExpenseMemberList = ({
@@ -29,30 +30,112 @@ const ExpenseMemberList = ({
   totalAmount,
 }: ExpenseMemberListProps) => {
   const [activeTab, setActiveTab] = useState("equally");
+  const [totalShares, setTotalShares] = useState(members.length);
   const [memberShares, setMemberShares] = useState<MemberShare[]>([]);
 
   useEffect(() => {
-    const initialShares = members.map((member) => ({
-      id: member.id,
-      name: member.fullName,
-      amount: totalAmount / members.length, // Equal split by default
-      shares: 1, // Default equal share
-    }));
-    setMemberShares(initialShares);
-  }, [members, totalAmount]);
+    const initializeMemberShares = () => {
+      const equalShare =
+        !isNaN(totalAmount) && totalAmount > 0
+          ? totalAmount / members.length
+          : 0;
 
-  const updateMemberShare = (
-    id: string,
-    value: number,
-    field: "shares" | "amount"
-  ) => {
+      const newMemberShares = members.map((member) => ({
+        id: member.id,
+        name: member.fullName,
+        equalAmount: equalShare,
+        shares: 1,
+        unequalAmount: equalShare,
+        edited: false,
+      }));
+
+      setMemberShares(newMemberShares);
+    };
+
+    // Call the initialization when relevant props change
+    initializeMemberShares();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "equally") {
+      const equalShare = totalAmount ? totalAmount / members.length : 0;
+
+      setMemberShares((prevShares) =>
+        prevShares.map((member) => ({
+          ...member,
+          equalAmount: equalShare,
+        }))
+      );
+    }
+  }, [activeTab, totalAmount]);
+
+  useEffect(() => {
+    if (activeTab === "unequally") {
+      updateOtherMemberAmounts();
+    } else {
+      setMemberShares((prev) =>
+        prev.map((member) => ({
+          ...member,
+          edited: false,
+        }))
+      );
+    }
+  }, [activeTab, totalAmount]);
+
+  const updateMemberShare = (id: string, value: number) => {
     const updatedShares = memberShares.map((member) => {
       if (member.id === id) {
-        return { ...member, [field]: value };
+        return { ...member, shares: value };
       }
       return member;
     });
     setMemberShares(updatedShares);
+  };
+
+  const updateMemberAmount = (id: string, value: number) => {
+    setMemberShares((prevShares) =>
+      prevShares.map((member) => {
+        if (member.id === id) {
+          return { ...member, unequalAmount: value, edited: true };
+        }
+        return member;
+      })
+    );
+    updateOtherMemberAmounts();
+  };
+
+  const updateOtherMemberAmounts = () => {
+    setMemberShares((currentShares) => {
+      // Calculate how many members have been manually edited
+      const editedCount = currentShares.filter(
+        (member) => member.edited
+      ).length;
+
+      // Calculate the sum of amounts from edited members
+      const editedTotal = currentShares.reduce((sum, member) => {
+        return member.edited ? sum + (member.unequalAmount || 0) : sum;
+      }, 0);
+
+      // Calculate remaining amount to distribute
+      const remainingAmount = totalAmount - editedTotal;
+
+      // Calculate how many members are left for auto-distribution
+      const remainingMembers = members.length - editedCount;
+
+      // Calculate amount per remaining member
+      const amountPerRemainingMember =
+        remainingMembers > 0 && remainingAmount >= 0
+          ? remainingAmount / remainingMembers
+          : 0;
+
+      // Return updated shares
+      return currentShares.map((member) => {
+        if (!member.edited) {
+          return { ...member, unequalAmount: amountPerRemainingMember };
+        }
+        return member;
+      });
+    });
   };
 
   const renderMemberItem = ({ item }: { item: MemberShare }) => (
@@ -65,44 +148,53 @@ const ExpenseMemberList = ({
       </View>
 
       {activeTab === "equally" && (
-        <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
+        <Text style={styles.amountText}>${item.equalAmount?.toFixed(2)}</Text>
       )}
 
       {activeTab === "shares" && (
         <View style={styles.sharesContainer}>
           <TouchableOpacity
             style={styles.shareButton}
-            onPress={() =>
-              updateMemberShare(item.id, Math.max(1, item.shares - 1), "shares")
-            }
+            onPress={() => {
+              if (item.shares || 0 - 1 > 0) {
+                updateMemberShare(item.id, item.shares || 0 - 1);
+                setTotalShares((prev) => --prev);
+              }
+            }}
           >
             <Text style={styles.shareButtonText}>-</Text>
           </TouchableOpacity>
           <View style={styles.shareValueContainer}>
             <Text style={styles.shareValue}>{item.shares}</Text>
-            <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
+            <Text style={styles.amountText}>
+              $
+              {totalAmount
+                ? ((totalAmount * (item.shares || 0)) / totalShares).toFixed(2)
+                : 0}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.shareButton}
-            onPress={() =>
-              updateMemberShare(item.id, item.shares + 1, "shares")
-            }
+            onPress={() => {
+              updateMemberShare(item.id, (item.shares || 0) + 1);
+              setTotalShares((prev) => ++prev);
+            }}
           >
             <Text style={styles.shareButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {activeTab === "custom" && (
+      {activeTab === "unequally" && (
         <View style={styles.customAmountContainer}>
           <Text style={styles.currencySymbol}>$</Text>
           <TextInput
             style={styles.customAmountInput}
             keyboardType="numeric"
-            value={item.amount.toString()}
+            value={item.unequalAmount?.toFixed(2).toString()}
             onChangeText={(value) => {
               const numValue = parseFloat(value) || 0;
-              updateMemberShare(item.id, numValue, "amount");
+              updateMemberAmount(item.id, numValue);
             }}
           />
         </View>
@@ -139,7 +231,6 @@ const ExpenseMemberList = ({
         keyExtractor={(item) => item.id}
         style={styles.list}
       />
-      <Button text="Add" onPress={() => {}} />
     </View>
   );
 };
