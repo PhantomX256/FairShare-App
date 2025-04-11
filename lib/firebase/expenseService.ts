@@ -1,5 +1,5 @@
 import { db } from "@/FirebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 
 interface Payer {
   userId: string;
@@ -23,7 +23,6 @@ export interface Expense {
 
 /**
  * Retrieves all expenses from Firestore that belong to a specific group.
- *
  */
 export const getAllExpensesByGroupId = async (
   id: string
@@ -52,6 +51,35 @@ export const getAllExpensesByGroupId = async (
 
     // Return the array of Expense objects
     return expenses;
+  } catch (error) {
+    // If the error is an instance of Error, rethrow it
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      // Otherwise, throw a new generic error
+      throw new Error("Server error");
+    }
+  }
+};
+
+/**
+ * Adds a new expense to the Firestore database.
+ */
+export const addExpense = async (expenseData: Expense) => {
+  try {
+    // Create a reference to the "expenses" collection in Firestore
+    const expensesRef = collection(db, "expenses");
+
+    // Add the new expense document to the collection
+    const docRef = await addDoc(expensesRef, {
+      ...expenseData,
+    });
+
+    // Return the newly created expense with its Firestore ID
+    return {
+      ...expenseData,
+      id: docRef.id,
+    };
   } catch (error) {
     // If the error is an instance of Error, rethrow it
     if (error instanceof Error) {

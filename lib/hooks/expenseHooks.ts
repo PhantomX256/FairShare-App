@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Expense, getAllExpensesByGroupId } from "../firebase/expenseService";
+import {
+  addExpense,
+  Expense,
+  getAllExpensesByGroupId,
+} from "../firebase/expenseService";
 import { useToast } from "@/components/contexts/ToastContext";
 
 export const useExpenseService = () => {
@@ -34,9 +38,22 @@ export const useExpenseService = () => {
     }
   };
 
+  const handleAddExpense = async (expenseData: any) => {
+    setIsLoading(true);
+    try {
+      await addExpense(expenseData);
+      showToast("Expense added successfully", "success");
+    } catch (error: any) {
+      showToast(error.message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     expenses,
     isLoading,
     loadExpenses,
+    handleAddExpense,
   };
 };

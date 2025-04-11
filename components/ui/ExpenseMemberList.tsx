@@ -14,6 +14,12 @@ import { colors } from "@/styles/global";
 interface ExpenseMemberListProps {
   members: User[];
   totalAmount: number;
+  memberShares: MemberShare[];
+  setMemberShares: React.Dispatch<React.SetStateAction<MemberShare[]>>;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  totalShares: number;
+  setTotalShares: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface MemberShare {
@@ -28,10 +34,20 @@ interface MemberShare {
 const ExpenseMemberList = ({
   members,
   totalAmount,
+  memberShares,
+  setMemberShares,
+  activeTab,
+  setActiveTab,
+  totalShares,
+  setTotalShares,
 }: ExpenseMemberListProps) => {
-  const [activeTab, setActiveTab] = useState("equally");
-  const [totalShares, setTotalShares] = useState(members.length);
-  const [memberShares, setMemberShares] = useState<MemberShare[]>([]);
+  const [editingInput, setEditingInput] = useState<{
+    memberId: string | null;
+    value: string | null;
+  }>({
+    memberId: null,
+    value: null,
+  });
 
   useEffect(() => {
     const initializeMemberShares = () => {
@@ -156,8 +172,8 @@ const ExpenseMemberList = ({
           <TouchableOpacity
             style={styles.shareButton}
             onPress={() => {
-              if (item.shares || 0 - 1 > 0) {
-                updateMemberShare(item.id, item.shares || 0 - 1);
+              if ((item.shares || 0) - 1 > 0) {
+                updateMemberShare(item.id, (item.shares || 0) - 1);
                 setTotalShares((prev) => --prev);
               }
             }}
@@ -191,11 +207,37 @@ const ExpenseMemberList = ({
           <TextInput
             style={styles.customAmountInput}
             keyboardType="numeric"
-            value={item.unequalAmount?.toFixed(2).toString()}
+            value={
+              editingInput.memberId === item.id
+                ? editingInput.value
+                : item.unequalAmount?.toFixed(2).toString()
+            }
             onChangeText={(value) => {
-              const numValue = parseFloat(value) || 0;
-              updateMemberAmount(item.id, numValue);
+              // Only update the temporary input state while editing
+              setEditingInput({
+                memberId: item.id,
+                value: value,
+              });
             }}
+            onBlur={() => {
+              // When focus is lost, apply the actual update with number parsing
+              if (
+                editingInput.memberId === item.id &&
+                editingInput.value !== null
+              ) {
+                const numValue = parseFloat(editingInput.value) || 0;
+                updateMemberAmount(item.id, numValue);
+                setEditingInput({ memberId: null, value: null });
+              }
+            }}
+            onFocus={() => {
+              // When focused, initialize the editing state
+              setEditingInput({
+                memberId: item.id,
+                value: item.unequalAmount?.toFixed(2).toString(),
+              });
+            }}
+            selectTextOnFocus={true}
           />
         </View>
       )}
@@ -203,7 +245,7 @@ const ExpenseMemberList = ({
   );
 
   return (
-    <View>
+    <View style={{ flex: 1, maxHeight: 375 }}>
       <View style={styles.tabContainer}>
         {expenseMemberListTabs.map((tab, index) => (
           <TouchableOpacity
@@ -236,9 +278,6 @@ const ExpenseMemberList = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   tabContainer: {
     display: "flex",
     flexDirection: "row",

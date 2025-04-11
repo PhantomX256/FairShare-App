@@ -13,6 +13,7 @@ import { useExpenseContext } from "@/components/contexts/ExpenseContext";
 import ExpenseList from "@/components/ui/ExpenseList";
 import { Expense } from "@/lib/firebase/expenseService";
 import AddExpense from "@/components/ui/AddExpense";
+import { ToastProvider } from "@/components/contexts/ToastContext";
 
 const group = () => {
   // Destructure from GroupContext to get the current group, its members, and loading state
@@ -141,10 +142,13 @@ const group = () => {
           animationType="slide"
           presentationStyle="pageSheet"
         >
-          <AddExpense
-            isMemberLoading={isMemberLoading}
-            groupMembers={currentGroupMembers}
-          />
+          <ToastProvider>
+            <AddExpense
+              isMemberLoading={isMemberLoading}
+              groupMembers={currentGroupMembers}
+              close={() => setIsModalVisible(false)}
+            />
+          </ToastProvider>
         </Modal>
       )}
     </View>

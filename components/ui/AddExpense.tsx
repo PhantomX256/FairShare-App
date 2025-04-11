@@ -18,10 +18,15 @@ import Loader from "../shared/Loader";
 import { colors } from "@/styles/global";
 import { AntDesign } from "@expo/vector-icons";
 import { FlatList } from "react-native";
+import { useExpenseContext } from "../contexts/ExpenseContext";
+import { useToast } from "../contexts/ToastContext";
+import { useGroupContext } from "../contexts/GroupContext";
+import { Timestamp } from "firebase/firestore";
 
 interface AddExpenseProps {
   groupMembers: User[];
   isMemberLoading: boolean;
+  close: () => void;
 }
 
 interface PaidByModalProps {
@@ -30,6 +35,15 @@ interface PaidByModalProps {
   onSelectUser: (user: User) => void;
   onClose: () => void;
   currentUserId?: string | null;
+}
+
+interface MemberShare {
+  id: string;
+  name: string;
+  equalAmount?: number;
+  shares?: number;
+  unequalAmount?: number;
+  edited?: boolean;
 }
 
 const PaidByModal = ({
@@ -89,12 +103,22 @@ const PaidByModal = ({
   );
 };
 
-const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
+const AddExpense = ({
+  groupMembers,
+  isMemberLoading,
+  close,
+}: AddExpenseProps) => {
   const [title, setTitle] = useState("");
+  const [activeTab, setActiveTab] = useState("equally");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [amount, setAmount] = useState("0.00");
+  const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState<User | null>(null);
+  const [totalShares, setTotalShares] = useState(groupMembers.length);
+  const [memberShares, setMemberShares] = useState<MemberShare[]>([]);
   const { user } = useAuth();
+  const { isLoading, addExpense } = useExpenseContext();
+  const { currentGroup } = useGroupContext();
+  const { showToast } = useToast();
 
   if (isMemberLoading) {
     return (
@@ -104,6 +128,62 @@ const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
       </View>
     );
   }
+
+  const handleAddExpense = async () => {
+    if (!title || !amount || !paidBy || memberShares.length === 0) {
+      showToast("All fields are required", "error");
+      return;
+    }
+
+    // Convert string amount to number
+    const numAmount = parseFloat(amount);
+
+    // Create payers array with single payer for now
+    const payers = [
+      {
+        userId: paidBy.id,
+        paidAmount: numAmount,
+      },
+    ];
+
+    // Transform memberShares into the required Member format
+    const members = memberShares.map((member) => {
+      // Determine the amount owed based on active tab
+      let amountOwed = 0;
+
+      if (activeTab === "equally") {
+        amountOwed = member.equalAmount || 0;
+      } else if (activeTab === "shares") {
+        amountOwed =
+          totalShares > 0
+            ? (numAmount * (member.shares || 0)) / totalShares
+            : 0;
+      } else if (activeTab === "unequally") {
+        amountOwed = member.unequalAmount || 0;
+      }
+
+      return {
+        userId: member.id,
+        amountOwed: amountOwed,
+      };
+    });
+
+    const expenseData = {
+      title,
+      amount: numAmount,
+      payers,
+      members,
+      groupId: currentGroup?.id, // You'll need to have this available
+      date: Timestamp.now(),
+    };
+
+    // Call the addExpense function from your context
+    await addExpense(expenseData);
+
+    showToast("Expense added successfully", "success");
+
+    close();
+  };
 
   // Set current user as default payer
   useEffect(() => {
@@ -144,7 +224,7 @@ const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
             value={amount}
             handleChange={(e) => setAmount(e)}
             keyboardType="numeric"
-            placeholder="Enter amount"
+            placeholder="0.00"
           />
           <View
             style={{
@@ -180,8 +260,19 @@ const AddExpense = ({ groupMembers, isMemberLoading }: AddExpenseProps) => {
           <ExpenseMemberList
             members={groupMembers}
             totalAmount={parseFloat(amount)}
+            memberShares={memberShares}
+            setMemberShares={setMemberShares}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            totalShares={totalShares}
+            setTotalShares={setTotalShares}
           />
-          <Button text="Add" onPress={() => {}} style={{ width: "100vw" }} />
+          <Button
+            text="Add"
+            onPress={handleAddExpense}
+            isLoading={isLoading}
+            style={{ width: "100vw" }}
+          />
         </View>
       </View>
     </TouchableWithoutFeedback>

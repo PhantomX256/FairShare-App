@@ -15,6 +15,7 @@ interface ExpenseContextType {
   isLoading: boolean;
   setCurrentExpense: (expense: Expense) => void;
   fetchExpenses: () => Promise<void>;
+  addExpense: (expenseData: any) => Promise<void>;
 }
 
 const ExpenseContext = createContext<ExpenseContextType>({
@@ -23,11 +24,13 @@ const ExpenseContext = createContext<ExpenseContextType>({
   isLoading: false,
   setCurrentExpense: () => {},
   fetchExpenses: async () => {},
+  addExpense: async () => {},
 });
 
 export const ExpenseProvider = ({ children }: { children: ReactNode }) => {
   // Use the custom hook to access expense data and related functions
-  const { expenses, isLoading, loadExpenses } = useExpenseService();
+  const { expenses, isLoading, loadExpenses, handleAddExpense } =
+    useExpenseService();
 
   // Get the currently selected group from the GroupContext
   const { currentGroup } = useGroupContext();
@@ -44,6 +47,11 @@ export const ExpenseProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addExpense = async (expenseData: any) => {
+    await handleAddExpense(expenseData);
+    await fetchExpenses();
+  };
+
   // Provide expense context values to all child components
   return (
     <ExpenseContext.Provider
@@ -53,6 +61,7 @@ export const ExpenseProvider = ({ children }: { children: ReactNode }) => {
         setCurrentExpense, // Function to update the currently selected expense
         isLoading, // Loading state indicator
         fetchExpenses, // Function to manually trigger expense loading
+        addExpense,
       }}
     >
       {children}

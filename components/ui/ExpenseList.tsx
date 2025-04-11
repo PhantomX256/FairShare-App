@@ -16,6 +16,22 @@ interface ExpenseListProps {
   onPressExpense: (expense: Expense) => void;
 }
 
+function formatDate(timestamp: any): string {
+  if (!timestamp || !timestamp.seconds) {
+    return "No date";
+  }
+
+  // Create date from seconds
+  const date = new Date(timestamp.seconds * 1000);
+
+  // Format the date
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const ExpenseList = ({
   expenses,
   isLoading,
@@ -56,9 +72,7 @@ const ExpenseList = ({
         {/* Container for expense title and date */}
         <View style={styles.expenseTextContainer}>
           <Text style={styles.expenseTitle}>{item.title}</Text>
-          <Text style={styles.expenseDate}>
-            {item.date.toLocaleDateString()}
-          </Text>
+          <Text style={styles.expenseDate}>{formatDate(item.date)}</Text>
         </View>
       </View>
       {/* Right section shows the expense amount */}
