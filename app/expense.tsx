@@ -4,7 +4,7 @@ import { useExpenseContext } from "@/components/contexts/ExpenseContext";
 import { formatDate } from "@/lib/constants";
 import { Feather } from "@expo/vector-icons";
 import { useGroupContext } from "@/components/contexts/GroupContext";
-import { User } from "@/lib/firebase/groupService";
+import { Member, User } from "@/lib/types";
 
 const expense = () => {
   // Get the details of the currently selected expense
@@ -31,14 +31,14 @@ const expense = () => {
 
     // Get the list of member IDs from the expense
     const memberIds =
-      currentExpense?.members.map((member) => member.userId) || [];
+      currentExpense?.members.map((member: Member) => member.userId) || [];
 
     // Get the details of each member from the currentGroupMembers
     const memberDetails = memberIds
-      .map((memberId) =>
+      .map((memberId: string) =>
         currentGroupMembers.find((member) => member.id === memberId)
       )
-      .filter((member) => member !== undefined);
+      .filter((member: Member) => member !== undefined);
 
     // Set the expense members state
     setExpenseMembers(memberDetails);
@@ -92,7 +92,7 @@ const expense = () => {
             // Find the member's share amount in the currentExpense
             const memberShare =
               currentExpense?.members.find(
-                (member) => member.userId === item.id
+                (member: Member) => member.userId === item.id
               )?.amountOwed || 0;
 
             return (
