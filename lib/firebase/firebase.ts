@@ -9,6 +9,7 @@ import {
   validateSignUpCredentials,
 } from "../formValidation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { User } from "../types";
 
 /**
  * CustomError is a specialized error class that extends the built-in Error class.
@@ -31,7 +32,10 @@ class CustomError extends Error {
  *
  * @throws An error if the sign-in process fails.
  */
-export const signIn = async (email: string, password: string) => {
+export const signIn = async (
+  email: string,
+  password: string
+): Promise<User | null> => {
   try {
     // Validate the sign-in credentials
     validateSignInCredentials(email, password);
@@ -74,7 +78,7 @@ export const signUp = async (
   email: string,
   password: string,
   confirmPassword: string
-) => {
+): Promise<User> => {
   try {
     // Validate the sign-up credentials
     validateSignUpCredentials(fullName, email, password, confirmPassword);
@@ -120,10 +124,10 @@ export const signUp = async (
 
 /**
  * Logs out the currently authenticated user from Firebase.
- * 
+ *
  * This function attempts to sign out the user from the Firebase authentication system.
  * If the operation fails, it throws an error with a generic message.
- * 
+ *
  */
 export const logout = async () => {
   try {
@@ -138,7 +142,7 @@ export const logout = async () => {
  *
  * @throws An error if the user document does not exist or if there is a failure in fetching the user data.
  */
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<User | null> => {
   try {
     // Get the current user from firebase persistence
     const currentUser = auth.currentUser;
@@ -158,7 +162,7 @@ export const getCurrentUser = async () => {
     // Check if the user document exists
     if (userDoc.exists()) {
       // Return the user data with the id
-      const userData = userDoc.data();
+      const userData = userDoc.data() as Omit<User, "id">;
       return { ...userData, id: userId };
     } else {
       // If the user document does not exist throw an error

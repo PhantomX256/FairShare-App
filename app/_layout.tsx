@@ -18,6 +18,7 @@ export default function RootLayout() {
                   options={{ title: "Create Group" }}
                 />
                 <Stack.Screen name="index" options={{ title: "Home" }} />
+                <Stack.Screen name="expense" options={{ title: "Expense" }} />
                 <Stack.Screen name="group" options={{ title: "Group" }} />
                 <Stack.Screen name="(auth)" options={{ title: "Auth" }} />
                 <Stack.Screen name="(tabs)" options={{ title: "Tabs" }} />

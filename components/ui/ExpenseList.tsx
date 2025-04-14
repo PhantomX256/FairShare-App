@@ -9,27 +9,12 @@ import {
 import Feather from "@expo/vector-icons/Feather";
 import Loader from "../shared/Loader";
 import { Expense } from "@/lib/firebase/expenseService";
+import { formatDate } from "@/lib/constants";
 
 interface ExpenseListProps {
   expenses: Expense[];
   isLoading: boolean;
   onPressExpense: (expense: Expense) => void;
-}
-
-function formatDate(timestamp: any): string {
-  if (!timestamp || !timestamp.seconds) {
-    return "No date";
-  }
-
-  // Create date from seconds
-  const date = new Date(timestamp.seconds * 1000);
-
-  // Format the date
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 const ExpenseList = ({

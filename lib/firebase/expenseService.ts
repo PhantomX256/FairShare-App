@@ -1,25 +1,6 @@
 import { db } from "@/FirebaseConfig";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
-
-interface Payer {
-  userId: string;
-  paidAmount: number;
-}
-
-interface Member {
-  userId: string;
-  amountOwed: number;
-}
-
-export interface Expense {
-  id: string;
-  groupId: string;
-  title: string;
-  payers: Payer[];
-  members: Member[];
-  amount: number;
-  date: Date;
-}
+import { Expense } from "../types";
 
 /**
  * Retrieves all expenses from Firestore that belong to a specific group.

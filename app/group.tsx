@@ -14,6 +14,7 @@ import ExpenseList from "@/components/ui/ExpenseList";
 import { Expense } from "@/lib/firebase/expenseService";
 import AddExpense from "@/components/ui/AddExpense";
 import { ToastProvider } from "@/components/contexts/ToastContext";
+import { router } from "expo-router";
 
 const group = () => {
   // Destructure from GroupContext to get the current group, its members, and loading state
@@ -37,6 +38,7 @@ const group = () => {
   const onPressExpense = (expense: Expense) => {
     // Update the current expense in the expense context
     setCurrentExpense(expense);
+    router.push("/expense");
   };
 
   return (

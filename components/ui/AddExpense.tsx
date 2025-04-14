@@ -175,6 +175,7 @@ const AddExpense = ({
       members,
       groupId: currentGroup?.id, // You'll need to have this available
       date: Timestamp.now(),
+      type: activeTab,
     };
 
     // Call the addExpense function from your context

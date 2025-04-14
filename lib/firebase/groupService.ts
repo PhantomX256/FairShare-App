@@ -10,45 +10,13 @@ import {
   Timestamp,
   where,
 } from "firebase/firestore";
-
-/**
- * Represents the data structure for a group in the application.
- *
- */
-interface GroupData {
-  groupName: string;
-  users?: string[];
-  guests?: {
-    id: string;
-    fullName: string;
-  }[];
-  description?: string;
-}
-
-export interface Group {
-  id: string;
-  groupName: string;
-  users?: string[];
-  guests?: {
-    id: string;
-    fullName: string;
-  }[];
-  description?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
-export interface User {
-  id: string;
-  fullName: string;
-  email: string;
-}
+import { Group, GroupData, User } from "../types";
 
 /**
  * Creates a new group in Firestore.
  *
  */
-export const createGroup = async (groupData: GroupData): Promise<Group> => {
+export const createGroup = async (groupData: GroupData) => {
   try {
     // Dereference users, guests and groupName from the parameter
     const { users = [], guests = [], groupName } = groupData;
@@ -76,19 +44,11 @@ export const createGroup = async (groupData: GroupData): Promise<Group> => {
     const now = Timestamp.now();
 
     // Add a doc to the groups collection
-    const docRef = await addDoc(groupsRef, {
+    await addDoc(groupsRef, {
       ...groupData,
       createdAt: now,
       updatedAt: now,
     });
-
-    // return the result of the addition.
-    return {
-      id: docRef.id,
-      ...groupData,
-      createdAt: now,
-      updatedAt: now,
-    };
   } catch (error) {
     // Rethrow the original error instead of a generic one
     if (error instanceof Error) {
@@ -121,11 +81,7 @@ export const getGroups = async (): Promise<Group[]> => {
     const groups = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as (GroupData & {
-      id: string;
-      createdAt: Timestamp;
-      updatedAt: Timestamp;
-    })[];
+    })) as Group[];
 
     // return the groups
     return groups;

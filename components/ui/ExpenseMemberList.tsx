@@ -29,6 +29,7 @@ interface MemberShare {
   shares?: number;
   unequalAmount?: number;
   edited?: boolean;
+  included?: boolean;
 }
 
 const ExpenseMemberList = ({
@@ -63,6 +64,7 @@ const ExpenseMemberList = ({
         shares: 1,
         unequalAmount: equalShare,
         edited: false,
+        included: true, // Initialize all members as included by default
       }));
 
       setMemberShares(newMemberShares);
@@ -74,16 +76,31 @@ const ExpenseMemberList = ({
 
   useEffect(() => {
     if (activeTab === "equally") {
-      const equalShare = totalAmount ? totalAmount / members.length : 0;
+      // Count included members
+      const includedMembersCount = memberShares.filter(
+        (member) => member.included
+      ).length;
+      // Check if there are any included members to avoid division by zero
+      const equalShare =
+        totalAmount && includedMembersCount > 0
+          ? totalAmount / includedMembersCount
+          : 0;
 
-      setMemberShares((prevShares) =>
-        prevShares.map((member) => ({
-          ...member,
-          equalAmount: equalShare,
-        }))
+      // Only update if the new calculated share is different
+      const needsUpdate = memberShares.some(
+        (member) => member.included && member.equalAmount !== equalShare
       );
+
+      if (needsUpdate) {
+        setMemberShares((prevShares) =>
+          prevShares.map((member) => ({
+            ...member,
+            equalAmount: member.included ? equalShare : 0,
+          }))
+        );
+      }
     }
-  }, [activeTab, totalAmount]);
+  }, [activeTab, totalAmount, memberShares.map((m) => m.included).join(",")]);
 
   useEffect(() => {
     if (activeTab === "unequally") {
@@ -97,6 +114,20 @@ const ExpenseMemberList = ({
       );
     }
   }, [activeTab, totalAmount]);
+
+  // Add a function to toggle member inclusion
+  const toggleMemberInclusion = (id: string) => {
+    if (activeTab !== "equally") return;
+
+    setMemberShares((prevShares) =>
+      prevShares.map((member) => {
+        if (member.id === id) {
+          return { ...member, included: !member.included };
+        }
+        return member;
+      })
+    );
+  };
 
   const updateMemberShare = (id: string, value: number) => {
     const updatedShares = memberShares.map((member) => {
@@ -155,16 +186,40 @@ const ExpenseMemberList = ({
   };
 
   const renderMemberItem = ({ item }: { item: MemberShare }) => (
-    <View style={styles.memberItem}>
+    <TouchableOpacity
+      style={[
+        styles.memberItem,
+        activeTab === "equally" && !item.included && styles.excludedMember,
+      ]}
+      onPress={() => activeTab === "equally" && toggleMemberInclusion(item.id)}
+      activeOpacity={activeTab === "equally" ? 0.7 : 1}
+    >
       <View style={styles.memberInfo}>
-        <View style={styles.avatarContainer}>
+        <View
+          style={[
+            styles.avatarContainer,
+            activeTab === "equally" && !item.included && styles.excludedAvatar,
+          ]}
+        >
           <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
         </View>
-        <Text style={styles.memberName}>{item.name}</Text>
+        <Text
+          style={[
+            styles.memberName,
+            activeTab === "equally" && !item.included && styles.excludedText,
+          ]}
+        >
+          {item.name}
+          {activeTab === "equally" && !item.included && " (excluded)"}
+        </Text>
       </View>
 
       {activeTab === "equally" && (
-        <Text style={styles.amountText}>${item.equalAmount?.toFixed(2)}</Text>
+        <Text
+          style={[styles.amountText, !item.included && styles.excludedText]}
+        >
+          {item.included ? `$${item.equalAmount?.toFixed(2)}` : "—"}
+        </Text>
       )}
 
       {activeTab === "shares" && (
@@ -172,7 +227,7 @@ const ExpenseMemberList = ({
           <TouchableOpacity
             style={styles.shareButton}
             onPress={() => {
-              if ((item.shares || 0) - 1 > 0) {
+              if ((item.shares || 0) - 1 >= 0) {
                 updateMemberShare(item.id, (item.shares || 0) - 1);
                 setTotalShares((prev) => --prev);
               }
@@ -241,7 +296,7 @@ const ExpenseMemberList = ({
           />
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -355,6 +410,17 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     fontSize: 15,
     color: "#333",
+  },
+  excludedMember: {
+    opacity: 0.7,
+    backgroundColor: "rgba(0,0,0,0.03)",
+  },
+  excludedText: {
+    color: "rgba(0,0,0,0.5)",
+    fontStyle: "italic",
+  },
+  excludedAvatar: {
+    backgroundColor: "rgba(100,70,115,0.5)", // Faded version of colors.bossanova
   },
   sharesContainer: {
     flexDirection: "row",

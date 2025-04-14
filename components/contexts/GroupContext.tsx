@@ -5,9 +5,8 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { Group } from "@/lib/firebase/groupService";
+import { Group, User } from "@/lib/firebase/groupService";
 import { useGroupService } from "@/lib/hooks/groupHooks";
-import { User } from "firebase/auth";
 
 interface GroupContextType {
   groups: Group[];

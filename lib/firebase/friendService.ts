@@ -13,6 +13,7 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
+import { FriendRequest, User } from "../types";
 
 /**
  * CustomError is a specialized error class that extends the built-in Error class.
@@ -29,25 +30,6 @@ class CustomError extends Error {
     this.name = "CustomError";
   }
 }
-
-type UserDataType = {
-  id: string;
-  fullName: string;
-  email: string;
-  friendIds: string[];
-  createdAt: Date;
-};
-
-type FriendRequestType = {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  status: string;
-  createdAt: any;
-  updatedAt: any;
-  sender?: any;
-  receiver?: any;
-};
 
 /**
  * Sends a friend request from a user to another user.
@@ -69,9 +51,7 @@ type FriendRequestType = {
  *   - "SERVER_ERROR" for other errors
  * @returns A Promise that resolves with the created friend request data
  */
-export const sendFriendRequest = async (
-  receiverId: string
-): Promise<FriendRequestType> => {
+export const sendFriendRequest = async (receiverId: string) => {
   try {
     const senderId = auth.currentUser?.uid;
     if (!senderId) {
@@ -162,16 +142,7 @@ export const sendFriendRequest = async (
     };
 
     // Add the friend request to Firestore
-    const docRef = await addDoc(
-      collection(db, "friendRequests"),
-      friendRequestData
-    );
-
-    // Return the request data with the document ID
-    return {
-      id: docRef.id,
-      ...friendRequestData,
-    };
+    await addDoc(collection(db, "friendRequests"), friendRequestData);
   } catch (error: any) {
     if (error instanceof CustomError) {
       throw error;
@@ -204,7 +175,7 @@ export const sendFriendRequest = async (
  * @throws {CustomError} With code "SERVER_ERROR" if the operation fails
  */
 export const getReceivedFriendRequests = async (): Promise<
-  Array<FriendRequestType>
+  Array<FriendRequest>
 > => {
   try {
     // Get the current authenticated user's ID from Firebase Auth
@@ -251,7 +222,7 @@ export const getReceivedFriendRequests = async (): Promise<
                 ...senderDoc.data(),
               }
             : null,
-        } as FriendRequestType;
+        } as FriendRequest;
       })
     );
 
@@ -283,7 +254,7 @@ export const getReceivedFriendRequests = async (): Promise<
  * @throws {CustomError} With code "SERVER_ERROR" if the operation fails.
  */
 export const getSentFriendRequests = async (): Promise<
-  Array<FriendRequestType>
+  Array<FriendRequest>
 > => {
   try {
     // Get the current authenticated user's ID
@@ -330,7 +301,7 @@ export const getSentFriendRequests = async (): Promise<
                 ...receiverDoc.data(),
               }
             : null,
-        } as FriendRequestType;
+        } as FriendRequest;
       })
     );
 
@@ -574,7 +545,7 @@ export const removeFriend = async (
  * @throws {CustomError} With code "USER_NOT_FOUND" if the current user document doesn't exist
  * @throws {CustomError} With code "SERVER_ERROR" if the operation fails
  */
-export const getFriends = async (): Promise<Array<UserDataType>> => {
+export const getFriends = async (): Promise<Array<User>> => {
   try {
     // Check if the current user is authenticated
     const currentUser = auth.currentUser;
@@ -613,7 +584,7 @@ export const getFriends = async (): Promise<Array<UserDataType>> => {
           return {
             id: friendId,
             ...friendDoc.data(),
-          } as UserDataType;
+          } as User;
         }
 
         return null;
@@ -621,7 +592,7 @@ export const getFriends = async (): Promise<Array<UserDataType>> => {
     );
 
     // Filter out any null values (in case a friend document doesn't exist)
-    return friends.filter((friend): friend is UserDataType => friend !== null);
+    return friends.filter((friend): friend is User => friend !== null);
   } catch (error: any) {
     if (error instanceof CustomError) {
       throw error;

@@ -26,3 +26,19 @@ export const welcomeScreenSlides = [
 ];
 
 export const expenseMemberListTabs = ["Equally", "Shares", "Unequally"];
+
+export function formatDate(timestamp: any): string {
+  if (!timestamp || !timestamp.seconds) {
+    return "No date";
+  }
+
+  // Create date from seconds
+  const date = new Date(timestamp.seconds * 1000);
+
+  // Format the date
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
