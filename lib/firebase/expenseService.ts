@@ -1,6 +1,15 @@
 import { db } from "@/FirebaseConfig";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  runTransaction,
+  doc,
+} from "firebase/firestore";
 import { Expense } from "../types";
+import { updateBalancesForNewExpense } from "./balanceService";
 
 /**
  * Retrieves all expenses from Firestore that belong to a specific group.
@@ -48,18 +57,25 @@ export const getAllExpensesByGroupId = async (
  */
 export const addExpense = async (expenseData: Expense) => {
   try {
-    // Create a reference to the "expenses" collection in Firestore
-    const expensesRef = collection(db, "expenses");
+    let newExpenseId = "";
 
-    // Add the new expense document to the collection
-    const docRef = await addDoc(expensesRef, {
-      ...expenseData,
+    await runTransaction(db, async (transaction) => {
+      // Create a reference to the "expenses" collection in Firestore
+      const expensesRef = collection(db, "expenses");
+
+      // Add the new expense document to the collection
+      const newExpenseRef = doc(expensesRef);
+      newExpenseId = newExpenseRef.id;
+
+      transaction.set(newExpenseRef, expenseData);
+
+      await updateBalancesForNewExpense(expenseData, transaction);
     });
 
     // Return the newly created expense with its Firestore ID
     return {
       ...expenseData,
-      id: docRef.id,
+      id: newExpenseId,
     };
   } catch (error) {
     // If the error is an instance of Error, rethrow it

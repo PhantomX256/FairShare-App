@@ -15,11 +15,17 @@ import { Expense } from "@/lib/firebase/expenseService";
 import AddExpense from "@/components/ui/AddExpense";
 import { ToastProvider } from "@/components/contexts/ToastContext";
 import { router } from "expo-router";
+import BalanceList from "@/components/ui/BalanceList";
 
 const group = () => {
   // Destructure from GroupContext to get the current group, its members, and loading state
-  const { currentGroup, currentGroupMembers, isMemberLoading } =
-    useGroupContext();
+  const {
+    currentGroup,
+    currentGroupMembers,
+    isMemberLoading,
+    currentGroupBalances,
+    isBalanceLoading,
+  } = useGroupContext();
   // State hook to track which tab is active - 'expenses' or 'balances'
   const [activeTab, setActiveTab] = useState("expenses");
   // State hook to control the visibility of the expense creation modal
@@ -102,18 +108,10 @@ const group = () => {
           onPressExpense={onPressExpense}
         />
       ) : (
-        <View style={{ height: "100%" }}>
-          <Text
-            style={{
-              fontFamily: "Poppins_400Regular",
-              fontSize: 16,
-              textAlign: "center",
-              marginTop: 50,
-            }}
-          >
-            Feature Coming Soon
-          </Text>
-        </View>
+        <BalanceList
+          balances={currentGroupBalances}
+          isLoading={isBalanceLoading}
+        />
       )}
 
       {/* Add expenses icon at the end */}

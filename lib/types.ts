@@ -63,3 +63,12 @@ export interface GroupData {
   }[];
   description?: string;
 }
+
+export interface Balance {
+  id: string;
+  userId: string;
+  balance: number;
+  groupId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

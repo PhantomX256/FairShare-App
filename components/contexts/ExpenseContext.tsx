@@ -33,7 +33,7 @@ export const ExpenseProvider = ({ children }: { children: ReactNode }) => {
     useExpenseService();
 
   // Get the currently selected group from the GroupContext
-  const { currentGroup } = useGroupContext();
+  const { currentGroup, loadBalances } = useGroupContext();
 
   // State for tracking the currently selected expense
   const [currentExpense, setCurrentExpense] = useState<Expense | null>(null);
@@ -44,6 +44,7 @@ export const ExpenseProvider = ({ children }: { children: ReactNode }) => {
     if (currentGroup) {
       // Load expenses for the current group using its ID
       await loadExpenses(currentGroup.id);
+      await loadBalances(currentGroup.id);
     }
   };
 

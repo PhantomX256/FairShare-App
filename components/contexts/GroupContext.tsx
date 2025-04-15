@@ -5,8 +5,9 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { Group, User } from "@/lib/firebase/groupService";
 import { useGroupService } from "@/lib/hooks/groupHooks";
+import { useBalanceService } from "@/lib/hooks/balanceHooks";
+import { Group, User } from "@/lib/types";
 
 interface GroupContextType {
   groups: Group[];
@@ -16,6 +17,9 @@ interface GroupContextType {
   fetchGroups: () => Promise<void>;
   currentGroupMembers: User[];
   isMemberLoading: boolean;
+  currentGroupBalances: Map<string, { id: string; balance: number }>;
+  isBalanceLoading: boolean;
+  loadBalances: (id: string) => Promise<void>;
 }
 
 const GroupContext = createContext<GroupContextType>({
@@ -26,6 +30,9 @@ const GroupContext = createContext<GroupContextType>({
   fetchGroups: async () => {},
   currentGroupMembers: [],
   isMemberLoading: false,
+  currentGroupBalances: new Map<string, { id: string; balance: number }>(),
+  isBalanceLoading: false,
+  loadBalances: async () => {},
 });
 
 export const GroupProvider = ({ children }: { children: ReactNode }) => {
@@ -38,6 +45,12 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
   // Get groups data, loading function, and loading state from the custom hook
   const { groups, loadGroups, isLoading, loadGroupMembers, isMemberLoading } =
     useGroupService();
+
+  const {
+    balances,
+    isLoading: isBalanceLoading,
+    loadBalances,
+  } = useBalanceService();
 
   // Function to fetch/reload groups data from the database
   const fetchGroups = async () => {
@@ -63,6 +76,8 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
       setCurrentGroupMembers([...members, ...guests]);
     };
 
+    loadBalances(currentGroup?.id);
+
     fetchGroupMembers();
   }, [currentGroup, setCurrentGroupMembers]);
 
@@ -77,6 +92,10 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
         fetchGroups, // Function to reload groups data
         currentGroupMembers, // current group members
         isMemberLoading, // Loading state from members
+        currentGroupBalances:
+          balances || new Map<string, { id: string; balance: number }>(),
+        isBalanceLoading,
+        loadBalances,
       }}
     >
       {children}
