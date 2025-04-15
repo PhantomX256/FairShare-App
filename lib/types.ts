@@ -72,3 +72,14 @@ export interface Balance {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+export interface BalanceItem {
+  userId: string;
+  amount: number;
+}
+
+export interface Split {
+  from: string;
+  to: string;
+  amount: number;
+}

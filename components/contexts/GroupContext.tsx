@@ -7,7 +7,8 @@ import React, {
 } from "react";
 import { useGroupService } from "@/lib/hooks/groupHooks";
 import { useBalanceService } from "@/lib/hooks/balanceHooks";
-import { Group, User } from "@/lib/types";
+import { Group, Split, User } from "@/lib/types";
+import { useSplitService } from "@/lib/hooks/splitHooks";
 
 interface GroupContextType {
   groups: Group[];
@@ -19,7 +20,8 @@ interface GroupContextType {
   isMemberLoading: boolean;
   currentGroupBalances: Map<string, { id: string; balance: number }>;
   isBalanceLoading: boolean;
-  loadBalances: (id: string) => Promise<void>;
+  splits: Split[];
+  isSplitLoading: boolean;
 }
 
 const GroupContext = createContext<GroupContextType>({
@@ -32,7 +34,8 @@ const GroupContext = createContext<GroupContextType>({
   isMemberLoading: false,
   currentGroupBalances: new Map<string, { id: string; balance: number }>(),
   isBalanceLoading: false,
-  loadBalances: async () => {},
+  splits: [],
+  isSplitLoading: false,
 });
 
 export const GroupProvider = ({ children }: { children: ReactNode }) => {
@@ -51,6 +54,8 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
     isLoading: isBalanceLoading,
     loadBalances,
   } = useBalanceService();
+
+  const { splits, getSplits, isLoading: isSplitLoading } = useSplitService();
 
   // Function to fetch/reload groups data from the database
   const fetchGroups = async () => {
@@ -81,6 +86,12 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
     fetchGroupMembers();
   }, [currentGroup, setCurrentGroupMembers]);
 
+  useEffect(() => {
+    if (balances) {
+      getSplits(balances);
+    }
+  }, [balances]);
+
   // Provide the group context values to all child components
   return (
     <GroupContext.Provider
@@ -95,7 +106,8 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
         currentGroupBalances:
           balances || new Map<string, { id: string; balance: number }>(),
         isBalanceLoading,
-        loadBalances,
+        splits,
+        isSplitLoading,
       }}
     >
       {children}

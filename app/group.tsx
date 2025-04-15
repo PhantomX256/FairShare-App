@@ -16,6 +16,7 @@ import AddExpense from "@/components/ui/AddExpense";
 import { ToastProvider } from "@/components/contexts/ToastContext";
 import { router } from "expo-router";
 import BalanceList from "@/components/ui/BalanceList";
+import SplitModal from "@/components/ui/SplitModal";
 
 const group = () => {
   // Destructure from GroupContext to get the current group, its members, and loading state
@@ -25,6 +26,8 @@ const group = () => {
     isMemberLoading,
     currentGroupBalances,
     isBalanceLoading,
+    splits,
+    isSplitLoading,
   } = useGroupContext();
   // State hook to track which tab is active - 'expenses' or 'balances'
   const [activeTab, setActiveTab] = useState("expenses");
@@ -135,7 +138,27 @@ const group = () => {
         </View>
       )}
 
-      {activeTab === "expenses" && currentGroup && (
+      {activeTab === "balances" && (
+        <View style={styles.addIconContainer}>
+          <AntDesign
+            name="pluscircle"
+            onPress={() => setIsModalVisible(true)}
+            size={50}
+            color="#EF8767"
+          />
+          <Text
+            style={{
+              fontFamily: "Poppins_300Light",
+              fontSize: 15,
+              textAlign: "center",
+            }}
+          >
+            View Splits
+          </Text>
+        </View>
+      )}
+
+      {currentGroup && (
         <Modal
           visible={isModalVisible}
           onRequestClose={() => setIsModalVisible(false)}
@@ -143,11 +166,14 @@ const group = () => {
           presentationStyle="pageSheet"
         >
           <ToastProvider>
-            <AddExpense
-              isMemberLoading={isMemberLoading}
-              groupMembers={currentGroupMembers}
-              close={() => setIsModalVisible(false)}
-            />
+            {activeTab === "expenses" && (
+              <AddExpense
+                isMemberLoading={isMemberLoading}
+                groupMembers={currentGroupMembers}
+                close={() => setIsModalVisible(false)}
+              />
+            )}
+            {activeTab === "balances" && <SplitModal />}
           </ToastProvider>
         </Modal>
       )}
