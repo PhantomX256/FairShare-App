@@ -9,7 +9,10 @@ import {
   doc,
 } from "firebase/firestore";
 import { Expense } from "../types";
-import { updateBalancesForNewExpense } from "./balanceService";
+import {
+  updateBalancesForNewExpense,
+  updateBalancesForRemoveExpense,
+} from "./balanceService";
 
 /**
  * Retrieves all expenses from Firestore that belong to a specific group.
@@ -55,7 +58,10 @@ export const getAllExpensesByGroupId = async (
 /**
  * Adds a new expense to the Firestore database.
  */
-export const addExpense = async (expenseData: Expense) => {
+export const addExpense = async (
+  expenseData: Expense,
+  currentGroupBalances: Map<string, { id: string; balance: number }>
+) => {
   try {
     let newExpenseId = "";
 
@@ -69,7 +75,11 @@ export const addExpense = async (expenseData: Expense) => {
 
       transaction.set(newExpenseRef, expenseData);
 
-      await updateBalancesForNewExpense(expenseData, transaction);
+      await updateBalancesForNewExpense(
+        expenseData,
+        currentGroupBalances,
+        transaction
+      );
     });
 
     // Return the newly created expense with its Firestore ID
@@ -77,6 +87,34 @@ export const addExpense = async (expenseData: Expense) => {
       ...expenseData,
       id: newExpenseId,
     };
+  } catch (error) {
+    // If the error is an instance of Error, rethrow it
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      // Otherwise, throw a new generic error
+      throw new Error("Server error");
+    }
+  }
+};
+
+export const deleteExpense = async (
+  expenseData: Expense,
+  currentGroupBalances: Map<string, { id: string; balance: number }>
+) => {
+  try {
+    await runTransaction(db, async (transaction) => {
+      // Create a reference to the "expenses" collection in Firestore
+      const expensesRef = collection(db, "expenses");
+
+      transaction.delete(doc(expensesRef, expenseData.id));
+
+      await updateBalancesForRemoveExpense(
+        expenseData,
+        currentGroupBalances,
+        transaction
+      );
+    });
   } catch (error) {
     // If the error is an instance of Error, rethrow it
     if (error instanceof Error) {

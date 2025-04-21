@@ -22,6 +22,10 @@ interface GroupContextType {
   isBalanceLoading: boolean;
   splits: Split[];
   isSplitLoading: boolean;
+  allBalances: { owed: number; owe: number };
+  isBalancesLoading: boolean;
+  loadAllBalances: () => Promise<void>;
+  loadBalances: (groudId: string) => Promise<void>;
 }
 
 const GroupContext = createContext<GroupContextType>({
@@ -36,6 +40,10 @@ const GroupContext = createContext<GroupContextType>({
   isBalanceLoading: false,
   splits: [],
   isSplitLoading: false,
+  allBalances: { owed: 0, owe: 0 },
+  isBalancesLoading: false,
+  loadAllBalances: async () => {},
+  loadBalances: async () => {},
 });
 
 export const GroupProvider = ({ children }: { children: ReactNode }) => {
@@ -53,6 +61,9 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
     balances,
     isLoading: isBalanceLoading,
     loadBalances,
+    allBalances,
+    isLoading: isBalancesLoading,
+    loadAllUserBalances,
   } = useBalanceService();
 
   const { splits, getSplits, isLoading: isSplitLoading } = useSplitService();
@@ -108,6 +119,10 @@ export const GroupProvider = ({ children }: { children: ReactNode }) => {
         isBalanceLoading,
         splits,
         isSplitLoading,
+        allBalances: allBalances || { owed: 0, owe: 0 },
+        isBalancesLoading,
+        loadAllBalances: loadAllUserBalances,
+        loadBalances,
       }}
     >
       {children}

@@ -1,14 +1,59 @@
-import { View, Text, StyleSheet, SafeAreaView, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { useExpenseContext } from "@/components/contexts/ExpenseContext";
 import { formatDate } from "@/lib/constants";
 import { Feather } from "@expo/vector-icons";
 import { useGroupContext } from "@/components/contexts/GroupContext";
 import { Member, User } from "@/lib/types";
+import { usePopup } from "@/components/contexts/PopupContext";
+import { router } from "expo-router";
+
+// Define the RemoveExpensePopup component
+const RemoveExpensePopup = ({
+  expenseTitle,
+  onConfirm,
+  onCancel,
+}: {
+  expenseTitle: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <View style={popupStyles.container}>
+      <Text style={popupStyles.title}>Remove Expense</Text>
+      <Text style={popupStyles.message}>
+        Are you sure you want to remove "{expenseTitle}"?
+      </Text>
+      <View style={popupStyles.buttonsContainer}>
+        <TouchableOpacity
+          style={[popupStyles.button, popupStyles.cancelButton]}
+          onPress={onCancel}
+        >
+          <Text style={popupStyles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[popupStyles.button, popupStyles.confirmButton]}
+          onPress={onConfirm}
+        >
+          <Text style={[popupStyles.buttonText, popupStyles.confirmText]}>
+            Remove
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const expense = () => {
   // Get the details of the currently selected expense
-  const { currentExpense } = useExpenseContext();
+  const { currentExpense, deleteExpense } = useExpenseContext();
 
   // Get the list of group members of the currently selected group
   const { currentGroupMembers } = useGroupContext();
@@ -18,6 +63,24 @@ const expense = () => {
 
   // Create a state to store the details of the payer
   const [payerDetails, setPayerDetails] = useState<User | null>(null);
+
+  const { showPopup, setPopupContent, hidePopup } = usePopup();
+
+  // Handle delete expense
+  const handleDeletePress = () => {
+    setPopupContent(
+      <RemoveExpensePopup
+        expenseTitle={currentExpense?.title || "this expense"}
+        onConfirm={async () => {
+          await deleteExpense();
+          hidePopup();
+          router.replace("/group");
+        }}
+        onCancel={hidePopup}
+      />
+    );
+    showPopup();
+  };
 
   // When the component renders get the payer and expense member details
   useEffect(() => {
@@ -47,8 +110,21 @@ const expense = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Edit Icon */}
-      <View style={styles.editIcon}>
-        <Feather name="edit" size={24} color={"rgba(0, 0, 0, 0.2)"} />
+      <View style={styles.iconsContainer}>
+        <Feather
+          name="edit"
+          size={24}
+          color={"rgba(0, 0, 0, 0.2)"}
+          style={styles.actionIcon}
+        />
+        <TouchableOpacity onPress={handleDeletePress}>
+          <Feather
+            name="trash-2"
+            size={24}
+            color={"rgba(0, 0, 0, 0.2)"}
+            style={styles.actionIcon}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Expense Icon */}
@@ -164,6 +240,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
+  iconsContainer: {
+    position: "absolute",
+    right: 30,
+    top: 30,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  actionIcon: {
+    marginLeft: 20,
+  },
   userIcon: {
     height: 40,
     width: 40,
@@ -208,6 +294,53 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 30,
     top: 30,
+  },
+});
+
+const popupStyles = StyleSheet.create({
+  container: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  title: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 18,
+    marginBottom: 15,
+    color: "#42224A",
+  },
+  message: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  button: {
+    padding: 12,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: "#F0F0F0",
+  },
+  confirmButton: {
+    backgroundColor: "#FFEBEB",
+  },
+  confirmText: {
+    color: "#FF5252",
   },
 });
 

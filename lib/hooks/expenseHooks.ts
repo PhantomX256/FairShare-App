@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
   addExpense,
-  Expense,
+  deleteExpense,
   getAllExpensesByGroupId,
 } from "../firebase/expenseService";
 import { useToast } from "@/components/contexts/ToastContext";
+import { useBalanceService } from "./balanceHooks";
+import { Expense } from "../types";
 
 export const useExpenseService = () => {
   // State to hold fetched expenses
@@ -15,6 +17,12 @@ export const useExpenseService = () => {
 
   // Dereference the showToast function to show toast messages
   const { showToast } = useToast();
+
+  const {
+    allBalances,
+    isLoading: isBalancesLoading,
+    loadAllUserBalances,
+  } = useBalanceService();
 
   /**
    * Asynchronously loads all expenses for a specific group.
@@ -38,11 +46,29 @@ export const useExpenseService = () => {
     }
   };
 
-  const handleAddExpense = async (expenseData: any) => {
+  const handleAddExpense = async (
+    expenseData: any,
+    currentGroupBalances: any
+  ) => {
     setIsLoading(true);
     try {
-      await addExpense(expenseData);
+      await addExpense(expenseData, currentGroupBalances);
       showToast("Expense added successfully", "success");
+    } catch (error: any) {
+      showToast(error.message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteExpense = async (
+    expenseData: Expense,
+    currentGroupBalances: any
+  ) => {
+    setIsLoading(true);
+    try {
+      await deleteExpense(expenseData, currentGroupBalances);
+      showToast("Expense deleted successfully", "success");
     } catch (error: any) {
       showToast(error.message, "error");
     } finally {
@@ -55,5 +81,9 @@ export const useExpenseService = () => {
     isLoading,
     loadExpenses,
     handleAddExpense,
+    isBalancesLoading,
+    allBalances,
+    loadAllUserBalances,
+    handleDeleteExpense,
   };
 };
