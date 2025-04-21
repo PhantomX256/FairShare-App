@@ -4,7 +4,6 @@ import {
   query,
   where,
   getDocs,
-  addDoc,
   runTransaction,
   doc,
 } from "firebase/firestore";
@@ -59,22 +58,30 @@ export const getAllExpensesByGroupId = async (
  * Adds a new expense to the Firestore database.
  */
 export const addExpense = async (
+  // The expense data object to be added to the database
   expenseData: Expense,
+  // Current balance map for the group members
   currentGroupBalances: Map<string, { id: string; balance: number }>
 ) => {
   try {
+    // Variable to store the ID of the newly created expense document
     let newExpenseId = "";
 
+    // Use a transaction to ensure both expense creation and balance updates complete atomically
     await runTransaction(db, async (transaction) => {
       // Create a reference to the "expenses" collection in Firestore
       const expensesRef = collection(db, "expenses");
 
-      // Add the new expense document to the collection
+      // Generate a new document reference with an auto-generated ID
       const newExpenseRef = doc(expensesRef);
+      // Store the auto-generated ID for later use
       newExpenseId = newExpenseRef.id;
 
+      // Add the expense data to the new document in the transaction
       transaction.set(newExpenseRef, expenseData);
 
+      // Update balances for all affected users to reflect the new expense
+      // This function handles the complex logic of calculating splits and updating user balances
       await updateBalancesForNewExpense(
         expenseData,
         currentGroupBalances,
@@ -82,33 +89,41 @@ export const addExpense = async (
       );
     });
 
-    // Return the newly created expense with its Firestore ID
+    // Return the complete expense object with the newly assigned ID
     return {
       ...expenseData,
       id: newExpenseId,
     };
   } catch (error) {
-    // If the error is an instance of Error, rethrow it
+    // If the caught error is an Error instance, rethrow it with its original stack trace
     if (error instanceof Error) {
       throw error;
     } else {
-      // Otherwise, throw a new generic error
+      // For non-standard errors, wrap in a generic Error with a clear message
       throw new Error("Server error");
     }
   }
 };
 
+/**
+ * Deletes an expense from Firestore and updates balances accordingly.
+ */
 export const deleteExpense = async (
+  // The expense object to be deleted
   expenseData: Expense,
+  // Current balance map for the group members
   currentGroupBalances: Map<string, { id: string; balance: number }>
 ) => {
   try {
+    // Use a transaction to ensure both expense deletion and balance updates complete atomically
     await runTransaction(db, async (transaction) => {
-      // Create a reference to the "expenses" collection in Firestore
+      // Get a reference to the "expenses" collection in Firestore
       const expensesRef = collection(db, "expenses");
 
+      // Delete the specific expense document using its ID
       transaction.delete(doc(expensesRef, expenseData.id));
 
+      // Update the balances for all affected users to reflect the expense removal
       await updateBalancesForRemoveExpense(
         expenseData,
         currentGroupBalances,
@@ -116,11 +131,11 @@ export const deleteExpense = async (
       );
     });
   } catch (error) {
-    // If the error is an instance of Error, rethrow it
+    // If the caught error is an Error instance, rethrow it with its original stack trace
     if (error instanceof Error) {
       throw error;
     } else {
-      // Otherwise, throw a new generic error
+      // For non-standard errors, wrap in a generic Error with a clear message
       throw new Error("Server error");
     }
   }
