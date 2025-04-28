@@ -6,21 +6,23 @@ import {
   Keyboard,
   Modal,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import FormField from "../shared/FormField";
 import ExpenseMemberList from "./ExpenseMemberList";
-import { User } from "@/lib/firebase/groupService";
 import Button from "../shared/Button";
 import { useAuth } from "../contexts/AuthContext";
 import Loader from "../shared/Loader";
-import { colors } from "@/styles/global";
 import { AntDesign } from "@expo/vector-icons";
 import { FlatList } from "react-native";
 import { useExpenseContext } from "../contexts/ExpenseContext";
 import { useToast } from "../contexts/ToastContext";
 import { useGroupContext } from "../contexts/GroupContext";
 import { Timestamp } from "firebase/firestore";
+import { User } from "@/lib/types";
 
 interface AddExpenseProps {
   groupMembers: User[];
@@ -193,107 +195,115 @@ const AddExpense = ({
   }, [user]);
 
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
-      <View style={styles.container}>
-        <Modal
-          visible={isModalVisible}
-          onRequestClose={() => setIsModalVisible(false)}
-          animationType="slide"
-          presentationStyle="pageSheet"
-        >
-          <PaidByModal
-            groupMembers={groupMembers}
-            selectedUser={paidBy}
-            onSelectUser={setPaidBy}
-            onClose={() => setIsModalVisible(false)}
-            currentUserId={user?.id}
-          />
-        </Modal>
-        <View style={styles.tab} />
-        <Text style={styles.heading}>Add Expense</Text>
-        <View style={{ display: "flex", gap: 5 }}>
-          <FormField
-            label="Expense Title"
-            value={title}
-            handleChange={(e) => setTitle(e)}
-            placeholder="Enter a title for the expense"
-            keyboardType="default"
-          />
-          <FormField
-            label="Expense Amount"
-            value={amount}
-            handleChange={(e) => setAmount(e)}
-            keyboardType="numeric"
-            placeholder="0.00"
-          />
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: 20,
-              alignItems: "center",
-            }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 30}
+    >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={styles.container}>
+          <Modal
+            visible={isModalVisible}
+            onRequestClose={() => setIsModalVisible(false)}
+            animationType="slide"
+            presentationStyle="pageSheet"
           >
-            <Text style={{ fontFamily: "Poppins_500Medium", fontSize: 16 }}>
-              Paid by
-            </Text>
-            <TouchableWithoutFeedback onPress={() => setIsModalVisible(true)}>
-              <View
-                style={{
-                  paddingHorizontal: 15,
-                  paddingVertical: 10,
-                  backgroundColor: colors.offwhite,
-                  borderRadius: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "rgba(0, 0, 0, 0.7)",
-                    fontFamily: "Poppins_300Light",
-                  }}
-                >
-                  {paidBy?.fullName}
-                </Text>
+            <PaidByModal
+              groupMembers={groupMembers}
+              selectedUser={paidBy}
+              onSelectUser={setPaidBy}
+              onClose={() => setIsModalVisible(false)}
+              currentUserId={user?.id}
+            />
+          </Modal>
+          <View style={styles.tab} />
+          <Text style={styles.heading}>Add Expense</Text>
+
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.formContainer}>
+              <FormField
+                label="Expense Title"
+                value={title}
+                handleChange={(e) => setTitle(e)}
+                placeholder="Enter a title for the expense"
+                keyboardType="default"
+              />
+              <FormField
+                label="Expense Amount"
+                value={amount}
+                handleChange={(e) => setAmount(e)}
+                keyboardType="numeric"
+                placeholder="0.00"
+              />
+              <View style={styles.paidByContainer}>
+                <Text style={styles.paidByLabel}>Paid by</Text>
+                <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+                  <View style={styles.paidBySelector}>
+                    <Text style={styles.paidByText}>
+                      {paidBy?.fullName || "Select person"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
               </View>
-            </TouchableWithoutFeedback>
+              <ExpenseMemberList
+                members={groupMembers}
+                totalAmount={parseFloat(amount)}
+                memberShares={memberShares}
+                setMemberShares={setMemberShares}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                totalShares={totalShares}
+                setTotalShares={setTotalShares}
+              />
+            </View>
+          </ScrollView>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              text="Add"
+              onPress={handleAddExpense}
+              isLoading={isLoading}
+              style={styles.addButton}
+            />
           </View>
-          <ExpenseMemberList
-            members={groupMembers}
-            totalAmount={parseFloat(amount)}
-            memberShares={memberShares}
-            setMemberShares={setMemberShares}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            totalShares={totalShares}
-            setTotalShares={setTotalShares}
-          />
-          <Button
-            text="Add"
-            onPress={handleAddExpense}
-            isLoading={isLoading}
-            style={{ width: "100vw" }}
-          />
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 30,
+    flex: 1,
     backgroundColor: "white",
     position: "relative",
-    display: "flex",
     alignItems: "center",
     width: "100%",
     height: "100%",
+  },
+  scrollView: {
+    width: "100%",
+    flex: 1,
+  },
+  scrollViewContent: {
+    padding: 30,
+    paddingBottom: 80, // Extra padding at the bottom for button space
+  },
+  formContainer: {
+    width: "100%",
+    gap: 5,
   },
   heading: {
     fontFamily: "Poppins_500Medium",
     fontSize: 20,
     textAlign: "center",
-    marginBottom: 30,
+    marginVertical: 30,
+    paddingHorizontal: 30,
   },
   tab: {
     position: "absolute",
@@ -302,6 +312,38 @@ const styles = StyleSheet.create({
     width: 55,
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     borderRadius: 15,
+  },
+  paidByContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+    marginVertical: 10,
+  },
+  paidByLabel: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 16,
+  },
+  paidBySelector: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 10,
+  },
+  paidByText: {
+    color: "rgba(0, 0, 0, 0.7)",
+    fontFamily: "Poppins_300Light",
+  },
+  buttonContainer: {
+    width: "100%",
+    padding: 20,
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: "white",
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  addButton: {
+    width: "100%",
   },
   modalContainer: {
     flex: 1,
